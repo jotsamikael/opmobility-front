@@ -1,0 +1,459 @@
+<div class="container-fluid">
+  <app-page-title title="Repair Management" [breadcrumbItems]="breadCrumbItems"></app-page-title>
+  
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+         <!-- Header with title and create button -->
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+              <h4 class="card-title mb-1">Repair Management</h4>
+              <p class="text-muted mb-0">Manage and monitor repairs performed on products and storage cases</p>
+            </div>
+            <button mat-raised-button color="primary" (click)="onCreateRepair()" class="d-flex align-items-center">
+              <mat-icon class="me-1">add_box</mat-icon>
+              Create New Repair
+            </button>
+          </div>
+          
+          <!-- Summary Cards -->
+          <div class="row mb-4" *ngIf="!isLoading">
+            <div class="col-md-6">
+              <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                  <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                      <h6 class="text-muted mb-1">Total Repairs</h6>
+                      <h3 class="mb-0">{{totalItems}}</h3>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                      <mat-icon style="color: #556ee6;">build</mat-icon>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                  <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                      <h6 class="text-muted mb-1">Current Page</h6>
+                      <h3 class="mb-0">{{currentPage}} / {{totalPages}}</h3>
+                    </div>
+                    <div class="bg-info bg-opacity-10 rounded-circle p-3">
+                      <mat-icon style="color: #50a5f1;">list</mat-icon>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters Section -->
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title mb-3">
+                <mat-icon class="me-2">filter_list</mat-icon>
+                Filters
+              </h5>
+              <div class="row g-3">
+                <div class="col-md-3">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Filter by Status</mat-label>
+                    <mat-select [formControl]="statusFilterControl">
+                      <mat-option [value]="null">All Status</mat-option>
+                      <mat-option *ngFor="let status of repairStatuses" [value]="status.value">
+                        {{status.label}}
+                      </mat-option>
+                    </mat-select>
+                    <mat-icon matSuffix>flag</mat-icon>
+                  </mat-form-field>
+                </div>
+              </div>
+              
+              <!-- Filter Actions -->
+              <div class="row mt-2">
+                <div class="col-12">
+                  <button mat-raised-button color="primary" (click)="applyFilters()" class="me-2">
+                    <mat-icon>filter_list</mat-icon>
+                    Apply Filters
+                  </button>
+                  <button mat-stroked-button (click)="clearFilters()" class="me-2">
+                    <mat-icon>clear</mat-icon>
+                    Clear Filters
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loading Spinner -->
+          <div *ngIf="isLoading" class="text-center py-4">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p class="mt-2">Loading repairs data...</p>
+          </div>
+
+          <!-- Table -->
+          <div class="table-responsive" *ngIf="!isLoading">
+            <div class="mat-elevation-z8 rounded overflow-hidden">
+              <table mat-table [dataSource]="dataSource" matSort (matSortChange)="onSortChange($event)" class="w-100">
+
+                <!-- ID Column -->
+                <ng-container matColumnDef="id">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header="id"> ID </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span class="fw-semibold">{{$any(row).id || 'N/A'}}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Product Column -->
+                <ng-container matColumnDef="product">
+                  <th mat-header-cell *matHeaderCellDef> Product </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span *ngIf="$any(row).product">{{displayProduct($any(row).product)}}</span>
+                    <span *ngIf="!$any(row).product && $any(row).productId" class="text-muted">Product ID: {{$any(row).productId}}</span>
+                    <span *ngIf="!$any(row).product && !$any(row).productId" class="text-muted">N/A</span>
+                  </td>
+                </ng-container>
+
+                <!-- Storage Case Column -->
+                <ng-container matColumnDef="storageCase">
+                  <th mat-header-cell *matHeaderCellDef> Storage Case </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span *ngIf="$any(row).storageCase">{{displayStorageCase($any(row).storageCase)}}</span>
+                    <span *ngIf="!$any(row).storageCase && $any(row).storageCaseId" class="text-muted">Storage Case ID: {{$any(row).storageCaseId}}</span>
+                    <span *ngIf="!$any(row).storageCase && !$any(row).storageCaseId" class="text-muted">N/A</span>
+                  </td>
+                </ng-container>
+
+                <!-- Provider Column -->
+                <ng-container matColumnDef="provider">
+                  <th mat-header-cell *matHeaderCellDef> Provider </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span *ngIf="$any(row).provider" class="badge bg-secondary">{{$any(row).provider.name}}</span>
+                    <span *ngIf="!$any(row).provider" class="text-muted">N/A</span>
+                  </td>
+                </ng-container>
+
+                <!-- Cost Amount Column -->
+                <ng-container matColumnDef="costAmount">
+                  <th mat-header-cell *matHeaderCellDef> Cost Amount </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span>{{$any(row).costAmount != null ? '$' + $any(row).costAmount : 'N/A'}}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Started At Column -->
+                <ng-container matColumnDef="startedAt">
+                  <th mat-header-cell *matHeaderCellDef> Started At </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span>{{$any(row).startedAt ? ($any(row).startedAt | date: 'shortDate') : 'N/A'}}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Finished At Column -->
+                <ng-container matColumnDef="finishedAt">
+                  <th mat-header-cell *matHeaderCellDef> Finished At </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span>{{$any(row).finishedAt ? ($any(row).finishedAt | date: 'shortDate') : 'N/A'}}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Status Column -->
+                <ng-container matColumnDef="status">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header="status"> Status </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span class="badge" [ngClass]="getRepairStatusBadgeClass($any(row).status)">
+                      {{getRepairStatusLabel($any(row).status)}}
+                    </span>
+                  </td>
+                </ng-container>
+
+                <!-- Actions Column -->
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef> Actions </th>
+                  <td mat-cell *matCellDef="let row">
+                    <button mat-icon-button [matMenuTriggerFor]="menu" class="action-menu-button">
+                      <mat-icon>more_vert</mat-icon>
+                    </button>
+                    
+                    <mat-menu #menu="matMenu" class="action-menu">
+                      <button mat-menu-item (click)="onViewRepair(row)" class="menu-item">
+                        <i class="mdi mdi-18px mdi-eye-outline"></i>
+                        <span>View Details</span>
+                      </button>
+                      
+                      <button mat-menu-item (click)="onEditRepair(row)" class="menu-item">
+                        <i class="mdi mdi-18px mdi-pencil"></i>
+                        <span>Edit Repair</span>
+                      </button>
+                      
+                      <button mat-menu-item (click)="onDeleteRepair(row)" class="menu-item">
+                        <i class="mdi mdi-18px mdi-delete"></i>
+                        <span>Delete Repair</span>
+                      </button>
+                    </mat-menu>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+                <!-- Row shown when there is no matching data. -->
+                <tr class="mat-row" *matNoDataRow>
+                  <td class="mat-cell text-center" [attr.colspan]="displayedColumns.length">
+                    <div class="py-4">
+                      <mat-icon class="text-muted" style="font-size: 48px;">build</mat-icon>
+                      <p class="text-muted mt-2">No repairs found</p>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <div class="row mt-3" *ngIf="!isLoading">
+            <div class="col-md-6">
+              <p class="text-muted mb-0">Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ getItemsToDisplay() }} of {{ totalItems }} repairs</p>
+            </div>
+            <div class="col-md-6">
+              <mat-paginator 
+                [length]="totalItems"
+                [pageSize]="pageSize"
+                [pageSizeOptions]="pageSizeOptions"
+                [pageIndex]="currentPage - 1"
+                (page)="onPageChange($event)"
+                aria-label="Select page of repairs">
+              </mat-paginator>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create/Edit Modal Template -->
+<ng-template #modalTemplate>
+    <div class="p-3">
+        <h2 mat-dialog-title class="d-flex align-items-center mb-3">
+            <mat-icon class="me-2" [style.color]="isEditMode ? '#556ee6' : '#34c38f'">
+                {{ isEditMode ? 'edit' : 'add_box' }}
+            </mat-icon>
+            {{ getModalTitle() }}
+        </h2>
+        
+        <mat-dialog-content class="mat-typography">
+            <form [formGroup]="repairForm">
+                <div class="modal-body mt-3">
+                  <div class="row">
+                    <!-- Product (XOR with Storage Case) -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Product (Select Product OR Storage Case)</mat-label>
+                        <input matInput [formControl]="productInputControl" [matAutocomplete]="productAuto" placeholder="Search product" [disabled]="productInputControl.disabled">
+                        <mat-autocomplete #productAuto="matAutocomplete" [displayWith]="displayProduct" (opened)="onAutocompleteOpened()" (closed)="onAutocompleteClosed()" (optionSelected)="onProductSelected($event)">
+                          <mat-option *ngFor="let product of filteredProducts | async" [value]="product">
+                            {{displayProduct(product)}}
+                          </mat-option>
+                        </mat-autocomplete>
+                        <mat-icon matPrefix class="me-2">inventory</mat-icon>
+                        <mat-hint>Select either a product or a storage case, not both</mat-hint>
+                      </mat-form-field>
+                    </div>
+                    
+                    <!-- Storage Case (XOR with Product) -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Storage Case (Select Product OR Storage Case)</mat-label>
+                        <input matInput [formControl]="storageCaseInputControl" [matAutocomplete]="storageCaseAuto" placeholder="Search storage case" [disabled]="storageCaseInputControl.disabled">
+                        <mat-autocomplete #storageCaseAuto="matAutocomplete" [displayWith]="displayStorageCase" (opened)="onAutocompleteOpened()" (closed)="onAutocompleteClosed()" (optionSelected)="onStorageCaseSelected($event)">
+                          <mat-option *ngFor="let storageCase of filteredStorageCases | async" [value]="storageCase">
+                            {{displayStorageCase(storageCase)}}
+                          </mat-option>
+                        </mat-autocomplete>
+                        <mat-icon matPrefix class="me-2">inventory_2</mat-icon>
+                        <mat-hint>Select either a product or a storage case, not both</mat-hint>
+                      </mat-form-field>
+                    </div>
+                  </div>
+  
+                  <div class="row">
+                    <!-- Provider -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Provider</mat-label>
+                        <input matInput [formControl]="providerInputControl" [matAutocomplete]="providerAuto" placeholder="Search provider">
+                        <mat-autocomplete #providerAuto="matAutocomplete" [displayWith]="displayProvider" (opened)="onAutocompleteOpened()" (closed)="onAutocompleteClosed()" (optionSelected)="onProviderSelected($event)">
+                          <mat-option *ngFor="let provider of filteredProviders | async" [value]="provider">
+                            {{displayProvider(provider)}}
+                          </mat-option>
+                        </mat-autocomplete>
+                        <mat-icon matPrefix class="me-2">business</mat-icon>
+                        <mat-error *ngIf="repairForm.get('providerId')?.hasError('required')">
+                          Provider is required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                    
+                    <!-- Status -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Status</mat-label>
+                        <mat-select formControlName="status">
+                          <mat-option *ngFor="let status of repairStatuses" [value]="status.value">
+                            {{status.label}}
+                          </mat-option>
+                        </mat-select>
+                        <mat-icon matPrefix class="me-2">flag</mat-icon>
+                        <mat-error *ngIf="repairForm.get('status')?.hasError('required')">
+                          Status is required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                  </div>
+  
+                  <div class="row">
+                    <!-- Cost Amount -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Cost Amount (Optional)</mat-label>
+                        <input matInput type="number" formControlName="costAmount" placeholder="Enter cost amount" step="0.01">
+                        <mat-icon matPrefix class="me-2">attach_money</mat-icon>
+                      </mat-form-field>
+                    </div>
+                    
+                    <!-- Started At -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Started At</mat-label>
+                        <input matInput type="date" formControlName="startedAt">
+                        <mat-icon matPrefix class="me-2">event</mat-icon>
+                        <mat-error *ngIf="repairForm.get('startedAt')?.hasError('required')">
+                          Started date is required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                  </div>
+  
+                  <div class="row">
+                    <!-- Finished At -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Finished At (Optional)</mat-label>
+                        <input matInput type="date" formControlName="finishedAt">
+                        <mat-icon matPrefix class="me-2">event</mat-icon>
+                      </mat-form-field>
+                    </div>
+                  </div>
+  
+                  <div class="row">
+                    <!-- Quote File Upload -->
+                    <div class="col-md-6">
+                      <label class="form-label">
+                        <mat-icon class="me-2" style="vertical-align: middle;">description</mat-icon>
+                        Quote File (Optional)
+                      </label>
+                      <input type="file" class="form-control" (change)="onQuoteFileSelected($event)" accept=".pdf,.jpg,.jpeg,.png">
+                      <small class="form-text text-muted">PDF, JPEG, or PNG files only (max 10MB)</small>
+                      
+                      <!-- Current Quote File Display -->
+                      <div *ngIf="currentQuoteFileUrl && !selectedQuoteFile" class="mb-2">
+                        <p class="text-muted mb-1">Current Quote File:</p>
+                        <a [href]="currentQuoteFileUrl" target="_blank" class="text-primary">
+                          <mat-icon>description</mat-icon>
+                          View Current Quote
+                        </a>
+                      </div>
+                      
+                      <!-- Quote File Preview -->
+                      <div *ngIf="quoteFilePreview" class="mb-2">
+                        <p class="text-muted mb-1">New Quote Preview:</p>
+                        <img [src]="quoteFilePreview" alt="Quote preview" style="max-width: 200px; max-height: 200px; border-radius: 4px;">
+                        <button mat-icon-button (click)="removeQuoteFile()" class="ms-2">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </div>
+                      
+                      <!-- Selected Quote File Name -->
+                      <div *ngIf="selectedQuoteFile && !quoteFilePreview" class="mb-2">
+                        <p class="text-muted mb-1">Selected File:</p>
+                        <span class="badge bg-info">{{selectedQuoteFile.name}}</span>
+                        <button mat-icon-button (click)="removeQuoteFile()" class="ms-2">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <!-- Invoice File Upload -->
+                    <div class="col-md-6">
+                      <label class="form-label">
+                        <mat-icon class="me-2" style="vertical-align: middle;">receipt</mat-icon>
+                        Invoice File (Optional)
+                      </label>
+                      <input type="file" class="form-control" (change)="onInvoiceFileSelected($event)" accept=".pdf,.jpg,.jpeg,.png">
+                      <small class="form-text text-muted">PDF, JPEG, or PNG files only (max 10MB)</small>
+                      
+                      <!-- Current Invoice File Display -->
+                      <div *ngIf="currentInvoiceFileUrl && !selectedInvoiceFile" class="mb-2">
+                        <p class="text-muted mb-1">Current Invoice File:</p>
+                        <a [href]="currentInvoiceFileUrl" target="_blank" class="text-primary">
+                          <mat-icon>receipt</mat-icon>
+                          View Current Invoice
+                        </a>
+                      </div>
+                      
+                      <!-- Invoice File Preview -->
+                      <div *ngIf="invoiceFilePreview" class="mb-2">
+                        <p class="text-muted mb-1">New Invoice Preview:</p>
+                        <img [src]="invoiceFilePreview" alt="Invoice preview" style="max-width: 200px; max-height: 200px; border-radius: 4px;">
+                        <button mat-icon-button (click)="removeInvoiceFile()" class="ms-2">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </div>
+                      
+                      <!-- Selected Invoice File Name -->
+                      <div *ngIf="selectedInvoiceFile && !invoiceFilePreview" class="mb-2">
+                        <p class="text-muted mb-1">Selected File:</p>
+                        <span class="badge bg-info">{{selectedInvoiceFile.name}}</span>
+                        <button mat-icon-button (click)="removeInvoiceFile()" class="ms-2">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+  
+                  <div class="row">
+                    <!-- Notes -->
+                    <div class="col-md-12">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Notes (Optional)</mat-label>
+                        <textarea matInput formControlName="notes" rows="3" placeholder="Enter notes"></textarea>
+                        <mat-icon matPrefix class="me-2">description</mat-icon>
+                        <mat-error *ngIf="repairForm.get('notes')?.hasError('maxlength')">
+                          Notes cannot exceed 2000 characters
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                  </div>
+                </div>
+            </form>
+        </mat-dialog-content>
+        
+        <mat-dialog-actions align="end" class="px-4 pb-3">
+            <button type="button" mat-stroked-button (click)="closeModal()" [disabled]="isSubmitting">
+                <mat-icon>close</mat-icon>
+                Cancel
+            </button>
+            <button type="button" (click)="onSubmitForm()" mat-raised-button color="primary" [disabled]="repairForm.invalid || isSubmitting">
+                <mat-spinner diameter="20" *ngIf="isSubmitting" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+                <mat-icon *ngIf="!isSubmitting" class="me-1">{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+                <span *ngIf="!isSubmitting">{{ getSubmitButtonText() }}</span>
+                <span *ngIf="isSubmitting">{{ isEditMode ? 'Updating...' : 'Creating...' }}</span>
+            </button>
+        </mat-dialog-actions>
+    </div>
+</ng-template>

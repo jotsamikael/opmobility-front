@@ -1,0 +1,386 @@
+<div class="container-fluid">
+  <app-page-title title="Location Management" [breadcrumbItems]="breadCrumbItems"></app-page-title>
+  
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+         <!-- Header with title and create button -->
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+              <h4 class="card-title mb-1">Location Management</h4>
+              <p class="text-muted mb-0">Manage and monitor warehouse locations</p>
+            </div>
+            <button mat-raised-button color="primary" (click)="onCreateLocation()" class="d-flex align-items-center">
+              <mat-icon class="me-1">add_location</mat-icon>
+              Create New Location
+            </button>
+          </div>
+          
+          <!-- Summary Cards -->
+          <div class="row mb-4" *ngIf="!isLoading">
+            <div class="col-md-6">
+              <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                  <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                      <h6 class="text-muted mb-1">Total Locations</h6>
+                      <h3 class="mb-0">{{totalItems}}</h3>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                      <mat-icon style="color: #556ee6;">location_on</mat-icon>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                  <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                      <h6 class="text-muted mb-1">Current Page</h6>
+                      <h3 class="mb-0">{{currentPage}} / {{totalPages}}</h3>
+                    </div>
+                    <div class="bg-info bg-opacity-10 rounded-circle p-3">
+                      <mat-icon style="color: #50a5f1;">list</mat-icon>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters Section -->
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title mb-3">
+                <mat-icon class="me-2">filter_list</mat-icon>
+                Filters
+              </h5>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Filter by Warehouse</mat-label>
+                    <input 
+                      type="text"
+                      matInput
+                      [formControl]="warehouseFilterInputControl"
+                      [matAutocomplete]="filterAuto"
+                      placeholder="Search and select a warehouse"
+                      (blur)="onFilterWarehouseInputBlur()">
+                    <mat-icon matSuffix>warehouse</mat-icon>
+                    <mat-autocomplete 
+                      #filterAuto="matAutocomplete" 
+                      [displayWith]="displayWarehouse"
+                      (optionSelected)="onFilterWarehouseSelected($event.option.value)"
+                      (opened)="onFilterAutocompleteOpened()"
+                      (closed)="onFilterAutocompleteClosed()">
+                      <mat-option [value]="null">
+                        <div class="d-flex align-items-center">
+                          <mat-icon class="me-2" style="font-size: 18px; width: 18px; height: 18px;">warehouse</mat-icon>
+                          <em>All Warehouses</em>
+                        </div>
+                      </mat-option>
+                      <mat-option *ngFor="let warehouse of filteredWarehousesForFilter | async" [value]="warehouse">
+                        <div class="d-flex align-items-center">
+                          <mat-icon class="me-2" style="font-size: 18px; width: 18px; height: 18px;">warehouse</mat-icon>
+                          <span>{{warehouse.name}}</span>
+                        </div>
+                      </mat-option>
+                    </mat-autocomplete>
+                  </mat-form-field>
+                </div>
+                
+                <div class="col-md-3">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Search by Aisle</mat-label>
+                    <input matInput [formControl]="aisleSearchControl" placeholder="Enter aisle">
+                    <mat-icon matSuffix>straighten</mat-icon>
+                  </mat-form-field>
+                </div>
+                
+                <div class="col-md-3">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Search by Position Label</mat-label>
+                    <input matInput [formControl]="positionLabelSearchControl" placeholder="Enter position label">
+                    <mat-icon matSuffix>label</mat-icon>
+                  </mat-form-field>
+                </div>
+                
+                <div class="col-md-3">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Level Number</mat-label>
+                    <input matInput type="number" [formControl]="levelNoSearchControl" placeholder="Enter level number">
+                    <mat-icon matSuffix>layers</mat-icon>
+                  </mat-form-field>
+                </div>
+              </div>
+              
+              <!-- Filter Actions -->
+              <div class="row mt-2">
+                <div class="col-12">
+                  <button mat-raised-button color="primary" (click)="applyFilters()" class="me-2">
+                    <mat-icon>filter_list</mat-icon>
+                    Apply Filters
+                  </button>
+                  <button mat-stroked-button (click)="clearFilters()" class="me-2">
+                    <mat-icon>clear</mat-icon>
+                    Clear Filters
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loading Spinner -->
+          <div *ngIf="isLoading" class="text-center py-4">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p class="mt-2">Loading locations data...</p>
+          </div>
+
+          <!-- Table -->
+          <div class="table-responsive" *ngIf="!isLoading">
+            <div class="mat-elevation-z8 rounded overflow-hidden">
+              <table mat-table [dataSource]="dataSource" matSort (matSortChange)="onSortChange($event)" class="w-100">
+
+                <!-- Aisle Column -->
+                <ng-container matColumnDef="aisle">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header="aisle"> Aisle </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <div class="d-flex align-items-center">
+                      <mat-icon class="me-2" style="font-size: 20px; width: 20px; height: 20px; color: #556ee6;">straighten</mat-icon>
+                      <span class="fw-semibold">{{row.aisle || 'N/A'}}</span>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <!-- Level No Column -->
+                <ng-container matColumnDef="levelNo">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header="levelNo"> Level </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <div class="d-flex align-items-center">
+                      <mat-icon class="me-2" style="font-size: 18px; width: 18px; height: 18px;">layers</mat-icon>
+                      <span class="badge bg-info">{{row.levelNo || 'N/A'}}</span>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <!-- Position Label Column -->
+                <ng-container matColumnDef="positionLabel">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header="positionLabel"> Position Label </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <div class="d-flex align-items-center">
+                      <mat-icon class="me-2" style="font-size: 18px; width: 18px; height: 18px;">label</mat-icon>
+                      <span>{{row.positionLabel || 'N/A'}}</span>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <!-- Warehouse Column -->
+                <ng-container matColumnDef="warehouse">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header> Warehouse </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <div class="d-flex align-items-center">
+                      <mat-icon class="me-2" style="font-size: 18px; width: 18px; height: 18px;">warehouse</mat-icon>
+                      <span class="badge bg-primary">{{row.warehouse?.name || 'N/A'}}</span>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <!-- Notes Column -->
+                <ng-container matColumnDef="notes">
+                  <th mat-header-cell *matHeaderCellDef> Notes </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span *ngIf="row.notes" class="text-truncate d-inline-block" style="max-width: 200px;" [matTooltip]="row.notes">
+                      {{row.notes}}
+                    </span>
+                    <span *ngIf="!row.notes" class="text-muted">-</span>
+                  </td>
+                </ng-container>
+
+                <!-- Actions Column -->
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef> Actions </th>
+                  <td mat-cell *matCellDef="let row">
+                    <button mat-icon-button [matMenuTriggerFor]="menu" class="action-menu-button">
+                      <mat-icon>more_vert</mat-icon>
+                    </button>
+                    
+                    <mat-menu #menu="matMenu" class="action-menu">
+                      <button mat-menu-item (click)="onViewLocation(row)" class="menu-item">
+                        <i class="mdi mdi-18px mdi-eye-outline"></i>
+                        <span>View Details</span>
+                      </button>
+                      
+                      <button mat-menu-item (click)="onEditLocation(row)" class="menu-item">
+                        <i class="mdi mdi-18px mdi-pencil"></i>
+                        <span>Edit Location</span>
+                      </button>
+                      
+                      <button mat-menu-item (click)="onDeleteLocation(row)" class="menu-item">
+                        <i class="mdi mdi-18px mdi-delete"></i>
+                        <span>Delete Location</span>
+                      </button>
+                    </mat-menu>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+                <!-- Row shown when there is no matching data. -->
+                <tr class="mat-row" *matNoDataRow>
+                  <td class="mat-cell text-center" [attr.colspan]="displayedColumns.length">
+                    <div class="py-4">
+                      <mat-icon class="text-muted" style="font-size: 48px;">location_off</mat-icon>
+                      <p class="text-muted mt-2">No locations found</p>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="row justify-content-between align-items-center mt-3">
+              <div class="col-md-6">
+                <mat-paginator 
+                  [length]="totalItems"
+                  [pageSize]="pageSize"
+                  [pageSizeOptions]="pageSizeOptions"
+                  [pageIndex]="currentPage - 1"
+                  (page)="onPageChange($event)"
+                  aria-label="Select page of locations">
+                </mat-paginator>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create/Edit Modal Template -->
+<ng-template #modalTemplate>
+    <div class="p-3">
+        <h2 mat-dialog-title class="d-flex align-items-center mb-3">
+            <mat-icon class="me-2" [style.color]="isEditMode ? '#556ee6' : '#34c38f'">
+                {{ isEditMode ? 'edit_location' : 'add_location' }}
+            </mat-icon>
+            {{ getModalTitle() }}
+        </h2>
+        
+        <mat-dialog-content class="mat-typography">
+            <form [formGroup]="locationForm">
+                <div class="modal-body mt-3">
+                  <div class="row">
+                    <!-- Warehouse -->
+                    <div class="col-md-12">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Warehouse</mat-label>
+                        <input 
+                          type="text"
+                          matInput
+                          [formControl]="warehouseInputControl"
+                          [matAutocomplete]="auto"
+                          placeholder="Search and select a warehouse"
+                          (blur)="onWarehouseInputBlur()">
+                        <mat-icon matPrefix class="me-2">warehouse</mat-icon>
+                        <mat-autocomplete 
+                          #auto="matAutocomplete" 
+                          [displayWith]="displayWarehouse"
+                          (optionSelected)="onWarehouseSelected($event.option.value)"
+                          (opened)="onAutocompleteOpened()"
+                          (closed)="onAutocompleteClosed()">
+                          <mat-option *ngFor="let warehouse of filteredWarehouses | async" [value]="warehouse">
+                            <div class="d-flex align-items-center">
+                              <mat-icon class="me-2" style="font-size: 18px; width: 18px; height: 18px;">warehouse</mat-icon>
+                              <span>{{warehouse.name}}</span>
+                            </div>
+                          </mat-option>
+                        </mat-autocomplete>
+                        <mat-error *ngIf="locationForm.get('warehouseId')?.hasError('required')">
+                          Warehouse is required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                  </div>
+  
+                  <div class="row">
+                    <!-- Aisle -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Aisle</mat-label>
+                        <input matInput formControlName="aisle" placeholder="Enter aisle">
+                        <mat-icon matPrefix class="me-2">straighten</mat-icon>
+                        <mat-error *ngIf="locationForm.get('aisle')?.hasError('required')">
+                          Aisle is required
+                        </mat-error>
+                        <mat-error *ngIf="locationForm.get('aisle')?.hasError('maxlength')">
+                          Aisle cannot exceed 20 characters
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                    
+                    <!-- Level No -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Level Number</mat-label>
+                        <input matInput type="number" formControlName="levelNo" placeholder="Enter level number">
+                        <mat-icon matPrefix class="me-2">layers</mat-icon>
+                        <mat-error *ngIf="locationForm.get('levelNo')?.hasError('required')">
+                          Level number is required
+                        </mat-error>
+                        <mat-error *ngIf="locationForm.get('levelNo')?.hasError('min')">
+                          Level number must be at least 1
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                  </div>
+  
+                  <div class="row">
+                    <!-- Position Label -->
+                    <div class="col-md-12">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Position Label</mat-label>
+                        <input matInput formControlName="positionLabel" placeholder="Enter position label">
+                        <mat-icon matPrefix class="me-2">label</mat-icon>
+                        <mat-error *ngIf="locationForm.get('positionLabel')?.hasError('required')">
+                          Position label is required
+                        </mat-error>
+                        <mat-error *ngIf="locationForm.get('positionLabel')?.hasError('maxlength')">
+                          Position label cannot exceed 20 characters
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                  </div>
+  
+                  <div class="row">
+                    <!-- Notes -->
+                    <div class="col-md-12">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Notes</mat-label>
+                        <textarea matInput formControlName="notes" rows="3" placeholder="Enter notes (optional)"></textarea>
+                        <mat-icon matPrefix class="me-2">notes</mat-icon>
+                      </mat-form-field>
+                    </div>
+                  </div>
+                </div>
+            </form>
+        </mat-dialog-content>
+        
+        <mat-dialog-actions align="end" class="px-4 pb-3">
+            <button type="button" mat-stroked-button mat-dialog-close [disabled]="isSubmitting">
+                <mat-icon>close</mat-icon>
+                Cancel
+            </button>
+            <button type="button" (click)="onSubmitForm()" mat-raised-button color="primary" [disabled]="locationForm.invalid || isSubmitting">
+                <mat-spinner diameter="20" *ngIf="isSubmitting" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+                <mat-icon *ngIf="!isSubmitting" class="me-1">{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+                <span *ngIf="!isSubmitting">{{ getSubmitButtonText() }}</span>
+                <span *ngIf="isSubmitting">{{ isEditMode ? 'Updating...' : 'Creating...' }}</span>
+            </button>
+        </mat-dialog-actions>
+    </div>
+</ng-template>

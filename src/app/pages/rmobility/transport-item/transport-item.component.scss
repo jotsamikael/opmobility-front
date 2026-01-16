@@ -1,0 +1,36 @@
+// Transport Item Component Styles
+// Similar to other component styles - can be customized as needed
+
+.action-menu-button {
+  color: #6c757d;
+}
+
+.action-menu-button:hover {
+  color: #495057;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-row {
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row strong {
+  display: inline-block;
+  min-width: 150px;
+  color: #495057;
+}
+
+.transport-item-details {
+  padding: 8px 0;
+}

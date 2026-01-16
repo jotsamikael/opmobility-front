@@ -1,0 +1,362 @@
+<div class="container-fluid">
+  <app-page-title title="Transport Item Management" [breadcrumbItems]="breadCrumbItems"></app-page-title>
+  
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+         <!-- Header with title and create button -->
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+              <h4 class="card-title mb-1">Transport Item Management</h4>
+              <p class="text-muted mb-0">Manage products assigned to transport lists</p>
+            </div>
+            <button mat-raised-button color="primary" (click)="onCreateTransportItem()" class="d-flex align-items-center">
+              <mat-icon class="me-1">add_box</mat-icon>
+              Create New Transport Item
+            </button>
+          </div>
+          
+          <!-- Summary Cards -->
+          <div class="row mb-4" *ngIf="!isLoading">
+            <div class="col-md-6">
+              <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                  <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                      <h6 class="text-muted mb-1">Total Transport Items</h6>
+                      <h3 class="mb-0">{{totalItems}}</h3>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                      <mat-icon style="color: #556ee6;">local_shipping</mat-icon>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                  <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                      <h6 class="text-muted mb-1">Current Page</h6>
+                      <h3 class="mb-0">{{currentPage}} / {{totalPages}}</h3>
+                    </div>
+                    <div class="bg-info bg-opacity-10 rounded-circle p-3">
+                      <mat-icon style="color: #50a5f1;">list</mat-icon>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters Section -->
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title mb-3">
+                <mat-icon class="me-2">filter_list</mat-icon>
+                Filters
+              </h5>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Filter by Transport List</mat-label>
+                    <input matInput [formControl]="transportListFilterInputControl" [matAutocomplete]="transportListFilterAuto" placeholder="Search transport list">
+                    <mat-autocomplete #transportListFilterAuto="matAutocomplete" [displayWith]="displayTransportList" (opened)="onFilterAutocompleteOpened()" (closed)="onFilterAutocompleteClosed()" (optionSelected)="onTransportListFilterSelected($event)">
+                      <mat-option [value]="null">All Transport Lists</mat-option>
+                      <mat-option *ngFor="let transportList of filteredTransportListsForFilter | async" [value]="transportList">
+                        {{displayTransportList(transportList)}}
+                      </mat-option>
+                    </mat-autocomplete>
+                    <mat-icon matSuffix>list</mat-icon>
+                  </mat-form-field>
+                </div>
+              </div>
+              
+              <!-- Filter Actions -->
+              <div class="row mt-2">
+                <div class="col-12">
+                  <button mat-raised-button color="primary" (click)="applyFilters()" class="me-2">
+                    <mat-icon>filter_list</mat-icon>
+                    Apply Filters
+                  </button>
+                  <button mat-stroked-button (click)="clearFilters()" class="me-2">
+                    <mat-icon>clear</mat-icon>
+                    Clear Filters
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loading Spinner -->
+          <div *ngIf="isLoading" class="text-center py-4">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p class="mt-2">Loading transport items data...</p>
+          </div>
+
+          <!-- Table -->
+          <div class="table-responsive" *ngIf="!isLoading">
+            <div class="mat-elevation-z8 rounded overflow-hidden">
+              <table mat-table [dataSource]="dataSource" matSort (matSortChange)="onSortChange($event)" class="w-100">
+
+                <!-- ID Column -->
+                <ng-container matColumnDef="id">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header="id"> ID </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span class="fw-semibold">{{$any(row).id || 'N/A'}}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Transport List Column -->
+                <ng-container matColumnDef="transportList">
+                  <th mat-header-cell *matHeaderCellDef> Transport List </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span *ngIf="$any(row).transportList" class="badge bg-primary">
+                      {{displayTransportList($any(row).transportList)}}
+                    </span>
+                    <span *ngIf="!$any(row).transportList && $any(row).transportListId" class="text-muted">
+                      List #{{$any(row).transportListId}}
+                    </span>
+                    <span *ngIf="!$any(row).transportList && !$any(row).transportListId" class="text-muted">N/A</span>
+                  </td>
+                </ng-container>
+
+                <!-- Product Column -->
+                <ng-container matColumnDef="product">
+                  <th mat-header-cell *matHeaderCellDef> Product </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span *ngIf="$any(row).product">{{displayProduct($any(row).product)}}</span>
+                    <span *ngIf="!$any(row).product && $any(row).productId" class="text-muted">Product ID: {{$any(row).productId}}</span>
+                    <span *ngIf="!$any(row).product && !$any(row).productId" class="text-muted">N/A</span>
+                  </td>
+                </ng-container>
+
+                <!-- Storage Case Column -->
+                <ng-container matColumnDef="storageCase">
+                  <th mat-header-cell *matHeaderCellDef> Storage Case </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span *ngIf="$any(row).storageCase">{{displayStorageCase($any(row).storageCase)}}</span>
+                    <span *ngIf="!$any(row).storageCase && $any(row).storageCaseId" class="text-muted">Storage Case ID: {{$any(row).storageCaseId}}</span>
+                    <span *ngIf="!$any(row).storageCase && !$any(row).storageCaseId" class="text-muted">N/A</span>
+                  </td>
+                </ng-container>
+
+                <!-- Podium Column -->
+                <ng-container matColumnDef="podium">
+                  <th mat-header-cell *matHeaderCellDef> Podium </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span *ngIf="$any(row).podium">{{displayPodium($any(row).podium)}}</span>
+                    <span *ngIf="!$any(row).podium && $any(row).podiumId" class="text-muted">Podium ID: {{$any(row).podiumId}}</span>
+                    <span *ngIf="!$any(row).podium && !$any(row).podiumId" class="text-muted">N/A</span>
+                  </td>
+                </ng-container>
+
+                <!-- Gross Weight Column -->
+                <ng-container matColumnDef="grossWeightKg">
+                  <th mat-header-cell *matHeaderCellDef> Gross Weight (kg) </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span>{{$any(row).grossWeightKg != null ? $any(row).grossWeightKg : 'N/A'}}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Returned At Column -->
+                <ng-container matColumnDef="returnedAt">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header="returnedAt"> Returned At </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span *ngIf="$any(row).returnedAt" class="badge bg-success">
+                      {{$any(row).returnedAt | date: 'short'}}
+                    </span>
+                    <span *ngIf="!$any(row).returnedAt" class="badge bg-warning">Not returned</span>
+                  </td>
+                </ng-container>
+
+                <!-- Actions Column -->
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef> Actions </th>
+                  <td mat-cell *matCellDef="let row">
+                    <button mat-icon-button [matMenuTriggerFor]="menu" class="action-menu-button">
+                      <mat-icon>more_vert</mat-icon>
+                    </button>
+                    
+                    <mat-menu #menu="matMenu" class="action-menu">
+                      <button mat-menu-item (click)="onViewTransportItem(row)" class="menu-item">
+                        <i class="mdi mdi-18px mdi-eye-outline"></i>
+                        <span>View Details</span>
+                      </button>
+                      
+                      <button mat-menu-item (click)="onEditTransportItem(row)" class="menu-item">
+                        <i class="mdi mdi-18px mdi-pencil"></i>
+                        <span>Edit Transport Item</span>
+                      </button>
+                      
+                      <button *ngIf="!$any(row).returnedAt" mat-menu-item (click)="onMarkAsReturned(row)" class="menu-item">
+                        <i class="mdi mdi-18px mdi-check-circle"></i>
+                        <span>Mark as Returned</span>
+                      </button>
+                    </mat-menu>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+                <!-- Row shown when there is no matching data. -->
+                <tr class="mat-row" *matNoDataRow>
+                  <td class="mat-cell text-center" [attr.colspan]="displayedColumns.length">
+                    <div class="py-4">
+                      <mat-icon class="text-muted" style="font-size: 48px;">local_shipping</mat-icon>
+                      <p class="text-muted mt-2">No transport items found</p>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <div class="row mt-3" *ngIf="!isLoading">
+            <div class="col-md-6">
+              <p class="text-muted mb-0">Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ getItemsToDisplay() }} of {{ totalItems }} transport items</p>
+            </div>
+            <div class="col-md-6">
+              <mat-paginator 
+                [length]="totalItems"
+                [pageSize]="pageSize"
+                [pageSizeOptions]="pageSizeOptions"
+                [pageIndex]="currentPage - 1"
+                (page)="onPageChange($event)"
+                aria-label="Select page of transport items">
+              </mat-paginator>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create/Edit Modal Template -->
+<ng-template #modalTemplate>
+    <div class="p-3">
+        <h2 mat-dialog-title class="d-flex align-items-center mb-3">
+            <mat-icon class="me-2" [style.color]="isEditMode ? '#556ee6' : '#34c38f'">
+                {{ isEditMode ? 'edit' : 'add_box' }}
+            </mat-icon>
+            {{ getModalTitle() }}
+        </h2>
+        
+        <mat-dialog-content class="mat-typography">
+            <form [formGroup]="transportItemForm">
+                <div class="modal-body mt-3">
+                  <div class="row">
+                    <!-- Transport List -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Transport List</mat-label>
+                        <input matInput [formControl]="transportListInputControl" [matAutocomplete]="transportListAuto" placeholder="Search transport list" (blur)="onTransportListInputBlur()">
+                        <mat-autocomplete #transportListAuto="matAutocomplete" [displayWith]="displayTransportList" (opened)="onAutocompleteOpened()" (closed)="onAutocompleteClosed()" (optionSelected)="onTransportListSelected($event)">
+                          <mat-option *ngFor="let transportList of filteredTransportLists | async" [value]="transportList">
+                            {{displayTransportList(transportList)}}
+                          </mat-option>
+                        </mat-autocomplete>
+                        <mat-icon matPrefix class="me-2">list</mat-icon>
+                        <mat-error *ngIf="transportItemForm.get('transportListId')?.hasError('required')">
+                          Transport list is required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                    
+                    <!-- Product -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Product</mat-label>
+                        <input matInput [formControl]="productInputControl" [matAutocomplete]="productAuto" placeholder="Search product" (blur)="onProductInputBlur()">
+                        <mat-autocomplete #productAuto="matAutocomplete" [displayWith]="displayProduct" (opened)="onAutocompleteOpened()" (closed)="onAutocompleteClosed()" (optionSelected)="onProductSelected($event)">
+                          <mat-option *ngFor="let product of filteredProducts | async" [value]="product">
+                            {{displayProduct(product)}}
+                          </mat-option>
+                        </mat-autocomplete>
+                        <mat-icon matPrefix class="me-2">inventory</mat-icon>
+                        <mat-error *ngIf="transportItemForm.get('productId')?.hasError('required')">
+                          Product is required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                  </div>
+  
+                  <div class="row">
+                    <!-- Storage Case -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Storage Case (Optional)</mat-label>
+                        <input matInput [formControl]="storageCaseInputControl" [matAutocomplete]="storageCaseAuto" placeholder="Search storage case">
+                        <mat-autocomplete #storageCaseAuto="matAutocomplete" [displayWith]="displayStorageCase" (opened)="onAutocompleteOpened()" (closed)="onAutocompleteClosed()" (optionSelected)="onStorageCaseSelected($event)">
+                          <mat-option [value]="null">None</mat-option>
+                          <mat-option *ngFor="let storageCase of filteredStorageCases | async" [value]="storageCase">
+                            {{displayStorageCase(storageCase)}}
+                          </mat-option>
+                        </mat-autocomplete>
+                        <mat-icon matPrefix class="me-2">inventory_2</mat-icon>
+                      </mat-form-field>
+                    </div>
+                    
+                    <!-- Podium -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Podium (Optional)</mat-label>
+                        <input matInput [formControl]="podiumInputControl" [matAutocomplete]="podiumAuto" placeholder="Search podium">
+                        <mat-autocomplete #podiumAuto="matAutocomplete" [displayWith]="displayPodium" (opened)="onAutocompleteOpened()" (closed)="onAutocompleteClosed()" (optionSelected)="onPodiumSelected($event)">
+                          <mat-option [value]="null">None</mat-option>
+                          <mat-option *ngFor="let podium of filteredPodiums | async" [value]="podium">
+                            {{displayPodium(podium)}}
+                          </mat-option>
+                        </mat-autocomplete>
+                        <mat-icon matPrefix class="me-2">view_column</mat-icon>
+                      </mat-form-field>
+                    </div>
+                  </div>
+  
+                  <div class="row">
+                    <!-- Gross Weight -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Gross Weight (kg) - Optional</mat-label>
+                        <input matInput type="number" formControlName="grossWeightKg" placeholder="Enter gross weight" step="0.001" min="0">
+                        <mat-icon matPrefix class="me-2">scale</mat-icon>
+                      </mat-form-field>
+                    </div>
+                  </div>
+  
+                  <div class="row">
+                    <!-- Notes -->
+                    <div class="col-md-12">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Notes (Optional)</mat-label>
+                        <textarea matInput formControlName="notes" rows="3" placeholder="Enter notes"></textarea>
+                        <mat-icon matPrefix class="me-2">description</mat-icon>
+                        <mat-error *ngIf="transportItemForm.get('notes')?.hasError('maxlength')">
+                          Notes cannot exceed 1000 characters
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                  </div>
+                </div>
+            </form>
+        </mat-dialog-content>
+        
+        <mat-dialog-actions align="end" class="px-4 pb-3">
+            <button type="button" mat-stroked-button (click)="closeModal()" [disabled]="isSubmitting">
+                <mat-icon>close</mat-icon>
+                Cancel
+            </button>
+            <button type="button" (click)="onSubmitForm()" mat-raised-button color="primary" [disabled]="transportItemForm.invalid || isSubmitting">
+                <mat-spinner diameter="20" *ngIf="isSubmitting" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+                <mat-icon *ngIf="!isSubmitting" class="me-1">{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+                <span *ngIf="!isSubmitting">{{ getSubmitButtonText() }}</span>
+                <span *ngIf="isSubmitting">{{ isEditMode ? 'Updating...' : 'Creating...' }}</span>
+            </button>
+        </mat-dialog-actions>
+    </div>
+</ng-template>
