@@ -7,6 +7,7 @@ export interface GetTransportListResponse {
   createdBy: number;
   eventId: number;
   id: number;
+  name: string;
   pdfUrl?: string;
   status: 'Active' | 'Archived';
   updatedAt: string;

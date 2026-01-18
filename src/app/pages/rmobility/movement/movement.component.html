@@ -1,1 +1,454 @@
-<p>movement works!</p>
+<div class="container-fluid">
+  <app-page-title title="Movement Management" [breadcrumbItems]="breadCrumbItems"></app-page-title>
+  
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+         <!-- Header with title and create button -->
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+              <h4 class="card-title mb-1">Movement Management</h4>
+              <p class="text-muted mb-0">Track product movements between warehouses, events, providers, and repairs</p>
+            </div>
+            <button mat-raised-button color="primary" (click)="onCreateMovement()" class="d-flex align-items-center">
+              <mat-icon class="me-1">add_box</mat-icon>
+              Create New Movement
+            </button>
+          </div>
+          
+          <!-- Summary Cards -->
+          <div class="row mb-4" *ngIf="!isLoading">
+            <div class="col-md-6">
+              <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                  <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                      <h6 class="text-muted mb-1">Total Movements</h6>
+                      <h3 class="mb-0">{{totalItems}}</h3>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                      <mat-icon style="color: #556ee6;">swap_horiz</mat-icon>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                  <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                      <h6 class="text-muted mb-1">Current Page</h6>
+                      <h3 class="mb-0">{{currentPage}} / {{totalPages}}</h3>
+                    </div>
+                    <div class="bg-info bg-opacity-10 rounded-circle p-3">
+                      <mat-icon style="color: #50a5f1;">list</mat-icon>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters Section -->
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title mb-3">
+                <mat-icon class="me-2">filter_list</mat-icon>
+                Filters
+              </h5>
+              <div class="row g-3">
+                <div class="col-md-3">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Product ID</mat-label>
+                    <input matInput type="number" [formControl]="productFilterControl" placeholder="Filter by product">
+                    <mat-icon matSuffix>inventory</mat-icon>
+                  </mat-form-field>
+                </div>
+                
+                <div class="col-md-3">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Movement Type</mat-label>
+                    <mat-select [formControl]="typeFilterControl">
+                      <mat-option [value]="null">All Types</mat-option>
+                      <mat-option *ngFor="let type of movementTypes" [value]="type.value">
+                        {{type.label}}
+                      </mat-option>
+                    </mat-select>
+                    <mat-icon matSuffix>swap_horiz</mat-icon>
+                  </mat-form-field>
+                </div>
+
+                <div class="col-md-3">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Origin Kind</mat-label>
+                    <mat-select [formControl]="originKindFilterControl">
+                      <mat-option [value]="null">All Kinds</mat-option>
+                      <mat-option *ngFor="let kind of movementKinds" [value]="kind.value">
+                        {{kind.label}}
+                      </mat-option>
+                    </mat-select>
+                    <mat-icon matSuffix>place</mat-icon>
+                  </mat-form-field>
+                </div>
+
+                <div class="col-md-3">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Origin Ref ID</mat-label>
+                    <input matInput type="number" [formControl]="originRefIdFilterControl" placeholder="Origin reference ID">
+                    <mat-icon matSuffix>tag</mat-icon>
+                  </mat-form-field>
+                </div>
+
+                <div class="col-md-3">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Destination Kind</mat-label>
+                    <mat-select [formControl]="destKindFilterControl">
+                      <mat-option [value]="null">All Kinds</mat-option>
+                      <mat-option *ngFor="let kind of movementKinds" [value]="kind.value">
+                        {{kind.label}}
+                      </mat-option>
+                    </mat-select>
+                    <mat-icon matSuffix>place</mat-icon>
+                  </mat-form-field>
+                </div>
+
+                <div class="col-md-3">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Destination Ref ID</mat-label>
+                    <input matInput type="number" [formControl]="destRefIdFilterControl" placeholder="Destination reference ID">
+                    <mat-icon matSuffix>tag</mat-icon>
+                  </mat-form-field>
+                </div>
+
+                <div class="col-md-3">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Start Date</mat-label>
+                    <input matInput type="date" [formControl]="startDateFilterControl">
+                    <mat-icon matSuffix>event</mat-icon>
+                  </mat-form-field>
+                </div>
+
+                <div class="col-md-3">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>End Date</mat-label>
+                    <input matInput type="date" [formControl]="endDateFilterControl">
+                    <mat-icon matSuffix>event</mat-icon>
+                  </mat-form-field>
+                </div>
+              </div>
+              
+              <!-- Filter Actions -->
+              <div class="row mt-2">
+                <div class="col-12">
+                  <button mat-raised-button color="primary" (click)="applyFilters()" class="me-2">
+                    <mat-icon>filter_list</mat-icon>
+                    Apply Filters
+                  </button>
+                  <button mat-stroked-button (click)="clearFilters()" class="me-2">
+                    <mat-icon>clear</mat-icon>
+                    Clear Filters
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loading Spinner -->
+          <div *ngIf="isLoading" class="text-center py-4">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p class="mt-2">Loading movements data...</p>
+          </div>
+
+          <!-- Table -->
+          <div class="table-responsive" *ngIf="!isLoading">
+            <div class="mat-elevation-z8 rounded overflow-hidden">
+              <table mat-table [dataSource]="dataSource" matSort (matSortChange)="onSortChange($event)" class="w-100">
+
+                <!-- ID Column -->
+                <ng-container matColumnDef="id">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header="id"> ID </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span class="fw-semibold">{{row.id || 'N/A'}}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Product Column -->
+                <ng-container matColumnDef="product">
+                  <th mat-header-cell *matHeaderCellDef> Product </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span>{{displayProductInfo(row)}}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Type Column -->
+                <ng-container matColumnDef="type">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header="type"> Type </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span class="badge" [ngClass]="row.type === 'Outbound' ? 'bg-warning' : 'bg-success'">
+                      {{row.type}}
+                    </span>
+                  </td>
+                </ng-container>
+
+                <!-- Moved At Column -->
+                <ng-container matColumnDef="movedAt">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header="movedAt"> Moved At </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span>{{formatDate(row.movedAt)}}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Origin Column -->
+                <ng-container matColumnDef="origin">
+                  <th mat-header-cell *matHeaderCellDef> Origin </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <div>
+                      <span class="badge bg-info mb-1 d-block">{{row.originKind}}</span>
+                      <span class="text-muted small">{{displayOrigin(row)}}</span>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <!-- Destination Column -->
+                <ng-container matColumnDef="destination">
+                  <th mat-header-cell *matHeaderCellDef> Destination </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <div>
+                      <span class="badge bg-primary mb-1 d-block">{{row.destKind}}</span>
+                      <span class="text-muted small">{{displayDestination(row)}}</span>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <!-- Notes Column -->
+                <ng-container matColumnDef="notes">
+                  <th mat-header-cell *matHeaderCellDef> Notes </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span class="text-truncate d-inline-block" [style.max-width.px]="200" [matTooltip]="row.notes || 'N/A'">
+                      {{row.notes || 'N/A'}}
+                    </span>
+                  </td>
+                </ng-container>
+
+                <!-- Actions Column -->
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef> Actions </th>
+                  <td mat-cell *matCellDef="let row">
+                    <button mat-icon-button [matMenuTriggerFor]="menu" class="action-menu-button">
+                      <mat-icon>more_vert</mat-icon>
+                    </button>
+                    
+                    <mat-menu #menu="matMenu" class="action-menu">
+                      <button mat-menu-item (click)="onEditMovement(row)" class="menu-item">
+                        <i class="mdi mdi-18px mdi-pencil"></i>
+                        <span>Edit Movement</span>
+                      </button>
+                      
+                      <button mat-menu-item (click)="onDeleteMovement(row)" class="menu-item">
+                        <i class="mdi mdi-18px mdi-delete"></i>
+                        <span>Delete Movement</span>
+                      </button>
+                    </mat-menu>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+                <!-- Row shown when there is no matching data. -->
+                <tr class="mat-row" *matNoDataRow>
+                  <td class="mat-cell text-center" [attr.colspan]="displayedColumns.length">
+                    <div class="py-4">
+                      <mat-icon class="text-muted" style="font-size: 48px;">swap_horiz</mat-icon>
+                      <p class="text-muted mt-2">No movements found</p>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <div class="row mt-3" *ngIf="!isLoading">
+            <div class="col-md-6">
+              <p class="text-muted mb-0">Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, totalItems) }} of {{ totalItems }} movements</p>
+            </div>
+            <div class="col-md-6">
+              <mat-paginator 
+                [length]="totalItems"
+                [pageSize]="pageSize"
+                [pageSizeOptions]="pageSizeOptions"
+                [pageIndex]="currentPage - 1"
+                (page)="onPageChange($event)"
+                aria-label="Select page of movements">
+              </mat-paginator>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create/Edit Modal Template -->
+<ng-template #modalTemplate>
+    <div class="p-3">
+        <h2 mat-dialog-title class="d-flex align-items-center mb-3">
+            <mat-icon class="me-2" [style.color]="isEditMode ? '#556ee6' : '#34c38f'">
+                {{ isEditMode ? 'edit' : 'add_box' }}
+            </mat-icon>
+            {{ isEditMode ? 'Edit Movement' : 'Create New Movement' }}
+        </h2>
+        
+        <mat-dialog-content class="mat-typography">
+            <form [formGroup]="movementForm">
+                <div class="modal-body mt-3">
+                  <div class="row">
+                    <!-- Product -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Product</mat-label>
+                        <input matInput [formControl]="productInputControl" [matAutocomplete]="productAuto" placeholder="Search product">
+                        <mat-autocomplete #productAuto="matAutocomplete" [displayWith]="displayProduct" (optionSelected)="onProductSelected($event)">
+                          <mat-option *ngFor="let product of filteredProducts | async" [value]="product">
+                            {{displayProduct(product)}}
+                          </mat-option>
+                        </mat-autocomplete>
+                        <mat-icon matPrefix class="me-2">inventory</mat-icon>
+                        <mat-error *ngIf="movementForm.get('productId')?.hasError('required')">
+                          Product is required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                    
+                    <!-- Type -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Movement Type</mat-label>
+                        <mat-select formControlName="type">
+                          <mat-option *ngFor="let type of movementTypes" [value]="type.value">
+                            {{type.label}}
+                          </mat-option>
+                        </mat-select>
+                        <mat-icon matPrefix class="me-2">swap_horiz</mat-icon>
+                        <mat-error *ngIf="movementForm.get('type')?.hasError('required')">
+                          Movement type is required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <!-- Moved At -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Moved At</mat-label>
+                        <input matInput type="datetime-local" formControlName="movedAt">
+                        <mat-icon matPrefix class="me-2">event</mat-icon>
+                        <mat-error *ngIf="movementForm.get('movedAt')?.hasError('required')">
+                          Moved at date is required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <!-- Origin Kind -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Origin Kind</mat-label>
+                        <mat-select formControlName="originKind">
+                          <mat-option *ngFor="let kind of movementKinds" [value]="kind.value">
+                            {{kind.label}}
+                          </mat-option>
+                        </mat-select>
+                        <mat-icon matPrefix class="me-2">place</mat-icon>
+                        <mat-error *ngIf="movementForm.get('originKind')?.hasError('required')">
+                          Origin kind is required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                    
+                    <!-- Origin Ref ID (Autocomplete) -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Origin {{selectedOriginKind}}</mat-label>
+                        <input matInput [formControl]="originInputControl" [matAutocomplete]="originAuto" placeholder="Search {{selectedOriginKind | lowercase}}">
+                        <mat-autocomplete #originAuto="matAutocomplete" [displayWith]="displayOriginDestOption" (optionSelected)="onOriginSelected($event)">
+                          <mat-option *ngFor="let item of filteredOriginOptions | async" [value]="item">
+                            {{displayOriginDestOption(item)}}
+                          </mat-option>
+                        </mat-autocomplete>
+                        <mat-icon matPrefix class="me-2">tag</mat-icon>
+                        <mat-error *ngIf="movementForm.get('originRefId')?.hasError('required')">
+                          Origin {{selectedOriginKind | lowercase}} is required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <!-- Destination Kind -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Destination Kind</mat-label>
+                        <mat-select formControlName="destKind">
+                          <mat-option *ngFor="let kind of movementKinds" [value]="kind.value">
+                            {{kind.label}}
+                          </mat-option>
+                        </mat-select>
+                        <mat-icon matPrefix class="me-2">place</mat-icon>
+                        <mat-error *ngIf="movementForm.get('destKind')?.hasError('required')">
+                          Destination kind is required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                    
+                    <!-- Destination Ref ID (Autocomplete) -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Destination {{selectedDestKind}}</mat-label>
+                        <input matInput [formControl]="destInputControl" [matAutocomplete]="destAuto" placeholder="Search {{selectedDestKind | lowercase}}">
+                        <mat-autocomplete #destAuto="matAutocomplete" [displayWith]="displayOriginDestOption" (optionSelected)="onDestSelected($event)">
+                          <mat-option *ngFor="let item of filteredDestOptions | async" [value]="item">
+                            {{displayOriginDestOption(item)}}
+                          </mat-option>
+                        </mat-autocomplete>
+                        <mat-icon matPrefix class="me-2">tag</mat-icon>
+                        <mat-error *ngIf="movementForm.get('destRefId')?.hasError('required')">
+                          Destination {{selectedDestKind | lowercase}} is required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <!-- Notes -->
+                    <div class="col-md-12">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Notes (Optional)</mat-label>
+                        <textarea matInput formControlName="notes" rows="3" placeholder="Additional notes about this movement" maxlength="2000"></textarea>
+                        <mat-icon matPrefix class="me-2">note</mat-icon>
+                        <mat-hint>{{movementForm.get('notes')?.value?.length || 0}} / 2000</mat-hint>
+                      </mat-form-field>
+                    </div>
+                  </div>
+                </div>
+            </form>
+        </mat-dialog-content>
+        
+        <mat-dialog-actions align="end" class="mt-3">
+            <button mat-stroked-button (click)="closeModal()" [disabled]="isSubmitting">
+                <mat-icon>close</mat-icon>
+                Cancel
+            </button>
+            <button mat-raised-button color="primary" (click)="onSubmitForm()" [disabled]="isSubmitting || movementForm.invalid">
+                <mat-icon *ngIf="!isSubmitting">{{ isEditMode ? 'save' : 'add_box' }}</mat-icon>
+                <mat-spinner *ngIf="isSubmitting" diameter="20" style="display: inline-block;"></mat-spinner>
+                {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Movement' : 'Create Movement') }}
+            </button>
+        </mat-dialog-actions>
+    </div>
+</ng-template>

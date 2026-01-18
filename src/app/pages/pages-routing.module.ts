@@ -7,7 +7,6 @@ import { DefaultComponent } from './dashboards/default/default.component';
 import { FilemanagerComponent } from './filemanager/filemanager.component';
 import { ProfileComponent } from './common/profile/profile.component';
 import { TransactionComponent } from '../shared/widget/transaction/transaction.component';
-import { OverviewComponent } from './projects/overview/overview.component';
 import { StaffComponent } from './rmobility/staff/staff.component';
 import { WarehouseComponent } from './rmobility/warehouse/warehouse.component';
 import { LocationComponent } from './rmobility/location/location.component';
@@ -24,6 +23,8 @@ import { StoragecaseComponent } from './rmobility/storagecase/storagecase.compon
 import { ExpoEventComponent } from './rmobility/expo-event/expo-event.component';
 import { TransportItemComponent } from './rmobility/transport-item/transport-item.component';
 import { TransportPodiumComponent } from './rmobility/transport-podium/transport-podium.component';
+import { TransportListComponent } from './rmobility/transport-list/transport-list.component';
+import { OverviewComponent } from './rmobility/overview/overview.component';
 
 
 const routes: Routes = [
@@ -49,6 +50,8 @@ const routes: Routes = [
  {path:'expo-event',component:ExpoEventComponent},
  {path:'transport-product', component:TransportItemComponent},
 {path:'transport-podium', component:TransportPodiumComponent},
+{path:'transport-list',component:TransportListComponent},
+{path:'overview',component:OverviewComponent},
 
 
  //common

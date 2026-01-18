@@ -10,6 +10,11 @@ export interface CreateTransportListDto {
   eventId: number;
 
   /**
+   * Name of the transport list
+   */
+  name: string;
+
+  /**
    * PDF file for the transport list
    */
   pdfFile: Blob;

@@ -11,6 +11,7 @@ import { BaseService } from '../base-service';
 import { ApiConfiguration } from '../api-configuration';
 import { StrictHttpResponse } from '../strict-http-response';
 
+import { GetMovementResponse } from '../models/get-movement-response';
 import { Movement } from '../models/movement';
 import { movementControllerCreateV1 } from '../fn/movement/movement-controller-create-v-1';
 import { MovementControllerCreateV1$Params } from '../fn/movement/movement-controller-create-v-1';
@@ -48,7 +49,7 @@ export class MovementService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  movementControllerGetAllMovementsV1$Response(params?: MovementControllerGetAllMovementsV1$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<Movement>>> {
+  movementControllerGetAllMovementsV1$Response(params?: MovementControllerGetAllMovementsV1$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<GetMovementResponse>>> {
     return movementControllerGetAllMovementsV1(this.http, this.rootUrl, params, context);
   }
 
@@ -62,9 +63,9 @@ export class MovementService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  movementControllerGetAllMovementsV1(params?: MovementControllerGetAllMovementsV1$Params, context?: HttpContext): Observable<Array<Movement>> {
+  movementControllerGetAllMovementsV1(params?: MovementControllerGetAllMovementsV1$Params, context?: HttpContext): Observable<Array<GetMovementResponse>> {
     return this.movementControllerGetAllMovementsV1$Response(params, context).pipe(
-      map((r: StrictHttpResponse<Array<Movement>>): Array<Movement> => r.body)
+      map((r: StrictHttpResponse<Array<GetMovementResponse>>): Array<GetMovementResponse> => r.body)
     );
   }
 
@@ -114,7 +115,7 @@ export class MovementService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  movementControllerFindByProductV1$Response(params: MovementControllerFindByProductV1$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<Movement>>> {
+  movementControllerFindByProductV1$Response(params: MovementControllerFindByProductV1$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<GetMovementResponse>>> {
     return movementControllerFindByProductV1(this.http, this.rootUrl, params, context);
   }
 
@@ -128,9 +129,9 @@ export class MovementService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  movementControllerFindByProductV1(params: MovementControllerFindByProductV1$Params, context?: HttpContext): Observable<Array<Movement>> {
+  movementControllerFindByProductV1(params: MovementControllerFindByProductV1$Params, context?: HttpContext): Observable<Array<GetMovementResponse>> {
     return this.movementControllerFindByProductV1$Response(params, context).pipe(
-      map((r: StrictHttpResponse<Array<Movement>>): Array<Movement> => r.body)
+      map((r: StrictHttpResponse<Array<GetMovementResponse>>): Array<GetMovementResponse> => r.body)
     );
   }
 
@@ -147,7 +148,7 @@ export class MovementService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  movementControllerFindByOriginV1$Response(params: MovementControllerFindByOriginV1$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<Movement>>> {
+  movementControllerFindByOriginV1$Response(params: MovementControllerFindByOriginV1$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<GetMovementResponse>>> {
     return movementControllerFindByOriginV1(this.http, this.rootUrl, params, context);
   }
 
@@ -161,9 +162,9 @@ export class MovementService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  movementControllerFindByOriginV1(params: MovementControllerFindByOriginV1$Params, context?: HttpContext): Observable<Array<Movement>> {
+  movementControllerFindByOriginV1(params: MovementControllerFindByOriginV1$Params, context?: HttpContext): Observable<Array<GetMovementResponse>> {
     return this.movementControllerFindByOriginV1$Response(params, context).pipe(
-      map((r: StrictHttpResponse<Array<Movement>>): Array<Movement> => r.body)
+      map((r: StrictHttpResponse<Array<GetMovementResponse>>): Array<GetMovementResponse> => r.body)
     );
   }
 
@@ -180,7 +181,7 @@ export class MovementService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  movementControllerFindByDestinationV1$Response(params: MovementControllerFindByDestinationV1$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<Movement>>> {
+  movementControllerFindByDestinationV1$Response(params: MovementControllerFindByDestinationV1$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<GetMovementResponse>>> {
     return movementControllerFindByDestinationV1(this.http, this.rootUrl, params, context);
   }
 
@@ -194,9 +195,9 @@ export class MovementService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  movementControllerFindByDestinationV1(params: MovementControllerFindByDestinationV1$Params, context?: HttpContext): Observable<Array<Movement>> {
+  movementControllerFindByDestinationV1(params: MovementControllerFindByDestinationV1$Params, context?: HttpContext): Observable<Array<GetMovementResponse>> {
     return this.movementControllerFindByDestinationV1$Response(params, context).pipe(
-      map((r: StrictHttpResponse<Array<Movement>>): Array<Movement> => r.body)
+      map((r: StrictHttpResponse<Array<GetMovementResponse>>): Array<GetMovementResponse> => r.body)
     );
   }
 
@@ -213,7 +214,7 @@ export class MovementService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  movementControllerFindOneV1$Response(params: MovementControllerFindOneV1$Params, context?: HttpContext): Observable<StrictHttpResponse<Movement>> {
+  movementControllerFindOneV1$Response(params: MovementControllerFindOneV1$Params, context?: HttpContext): Observable<StrictHttpResponse<GetMovementResponse>> {
     return movementControllerFindOneV1(this.http, this.rootUrl, params, context);
   }
 
@@ -227,9 +228,9 @@ export class MovementService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  movementControllerFindOneV1(params: MovementControllerFindOneV1$Params, context?: HttpContext): Observable<Movement> {
+  movementControllerFindOneV1(params: MovementControllerFindOneV1$Params, context?: HttpContext): Observable<GetMovementResponse> {
     return this.movementControllerFindOneV1$Response(params, context).pipe(
-      map((r: StrictHttpResponse<Movement>): Movement => r.body)
+      map((r: StrictHttpResponse<GetMovementResponse>): GetMovementResponse => r.body)
     );
   }
 

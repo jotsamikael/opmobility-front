@@ -210,4 +210,33 @@ export class GlobalFormBuilder {
       notes: ['', [Validators.maxLength(1000)]]
     });
   }
+
+  movementForm(){
+    // Format current date/time for datetime-local input (YYYY-MM-DDTHH:mm)
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const defaultDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+    
+    return this.fb.group({
+      productId: [null, Validators.required],
+      type: ['Outbound', Validators.required],
+      movedAt: [defaultDateTime, Validators.required],
+      originKind: ['Warehouse', Validators.required],
+      originRefId: [null, Validators.required],
+      destKind: ['Event', Validators.required],
+      destRefId: [null, Validators.required],
+      notes: ['', [Validators.maxLength(2000)]]
+    });
+  }
+
+  transportListForm(){
+    return this.fb.group({
+      name: ['', [Validators.required, Validators.maxLength(255)]],
+      eventId: [null, Validators.required]
+    });
+  }
 }

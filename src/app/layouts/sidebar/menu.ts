@@ -30,7 +30,7 @@ export const MENU: MenuItem[] = [
         id: 4,
         label: 'Transport List History',
         icon: 'bxs-book',
-        link: 'match',
+        link: 'transport-list',
         roles: ['ADMIN','LOGISTIC_MANAGER','ALPHA_STORE_MANAGER']
 
     },

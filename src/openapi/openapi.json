@@ -1,6 +1,33 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/api/v1/overview/statistics": {
+      "get": {
+        "operationId": "AppController_getOverviewStatistics_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Overview statistics retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OverviewStatisticsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Get platform overview statistics",
+        "tags": [
+          "Overview"
+        ]
+      }
+    },
     "/api/v1/user": {
       "get": {
         "description": "Retrieve all user accounts. Admin can access all users (OPERATOR and USER), operator can only access USERs.",
@@ -5979,6 +6006,16 @@
             }
           },
           {
+            "name": "name",
+            "required": false,
+            "in": "query",
+            "description": "Filter by transport list name",
+            "schema": {
+              "example": "CES 2025",
+              "type": "string"
+            }
+          },
+          {
             "name": "eventId",
             "required": false,
             "in": "query",
@@ -6178,10 +6215,28 @@
         ],
         "requestBody": {
           "required": true,
+          "description": "Update transport list data with optional PDF file",
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateTransportListDto"
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Name of the transport list",
+                    "example": "Transport List for CES 2025"
+                  },
+                  "eventId": {
+                    "type": "number",
+                    "description": "The ID of the expo event this transport list belongs to",
+                    "example": 1
+                  },
+                  "pdfFile": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "PDF file for the transport list (optional)"
+                  }
+                }
               }
             }
           }
@@ -6968,7 +7023,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Movement"
+                    "$ref": "#/components/schemas/GetMovementResponse"
                   }
                 }
               }
@@ -7037,7 +7092,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Movement"
+                    "$ref": "#/components/schemas/GetMovementResponse"
                   }
                 }
               }
@@ -7123,7 +7178,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Movement"
+                    "$ref": "#/components/schemas/GetMovementResponse"
                   }
                 }
               }
@@ -7209,7 +7264,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Movement"
+                    "$ref": "#/components/schemas/GetMovementResponse"
                   }
                 }
               }
@@ -7276,7 +7331,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Movement"
+                  "$ref": "#/components/schemas/GetMovementResponse"
                 }
               }
             }
@@ -9013,6 +9068,268 @@
       }
     },
     "schemas": {
+      "ProductStatusStats": {
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "number",
+            "example": 50
+          },
+          "atEvent": {
+            "type": "number",
+            "example": 20
+          },
+          "inspecting": {
+            "type": "number",
+            "example": 5
+          },
+          "underRepair": {
+            "type": "number",
+            "example": 10
+          },
+          "retired": {
+            "type": "number",
+            "example": 5
+          }
+        },
+        "required": [
+          "available",
+          "atEvent",
+          "inspecting",
+          "underRepair",
+          "retired"
+        ]
+      },
+      "MovementStats": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 100
+          },
+          "outbound": {
+            "type": "number",
+            "example": 60
+          },
+          "inbound": {
+            "type": "number",
+            "example": 40
+          }
+        },
+        "required": [
+          "total",
+          "outbound",
+          "inbound"
+        ]
+      },
+      "RepairStats": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 25
+          },
+          "inProgress": {
+            "type": "number",
+            "example": 15
+          },
+          "done": {
+            "type": "number",
+            "example": 10
+          },
+          "totalCost": {
+            "type": "number",
+            "example": 5000.5
+          }
+        },
+        "required": [
+          "total",
+          "inProgress",
+          "done",
+          "totalCost"
+        ]
+      },
+      "InspectionStats": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 30
+          },
+          "ok": {
+            "type": "number",
+            "example": 20
+          },
+          "toRepair": {
+            "type": "number",
+            "example": 7
+          },
+          "toRetire": {
+            "type": "number",
+            "example": 3
+          }
+        },
+        "required": [
+          "total",
+          "ok",
+          "toRepair",
+          "toRetire"
+        ]
+      },
+      "EventStats": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 15
+          },
+          "planned": {
+            "type": "number",
+            "example": 5
+          },
+          "inProgress": {
+            "type": "number",
+            "example": 3
+          },
+          "closed": {
+            "type": "number",
+            "example": 7
+          }
+        },
+        "required": [
+          "total",
+          "planned",
+          "inProgress",
+          "closed"
+        ]
+      },
+      "TransportListStats": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 40
+          },
+          "active": {
+            "type": "number",
+            "example": 30
+          },
+          "archived": {
+            "type": "number",
+            "example": 10
+          }
+        },
+        "required": [
+          "total",
+          "active",
+          "archived"
+        ]
+      },
+      "ActivityTimeSeries": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "example": "2025-01-01"
+          },
+          "movements": {
+            "type": "number",
+            "example": 10
+          },
+          "repairs": {
+            "type": "number",
+            "example": 3
+          },
+          "inspections": {
+            "type": "number",
+            "example": 2
+          }
+        },
+        "required": [
+          "date",
+          "movements",
+          "repairs",
+          "inspections"
+        ]
+      },
+      "OverviewStatisticsDto": {
+        "type": "object",
+        "properties": {
+          "totalProducts": {
+            "type": "number",
+            "example": 90
+          },
+          "totalMovements": {
+            "type": "number",
+            "example": 100
+          },
+          "totalRepairs": {
+            "type": "number",
+            "example": 25
+          },
+          "totalInspections": {
+            "type": "number",
+            "example": 30
+          },
+          "totalEvents": {
+            "type": "number",
+            "example": 15
+          },
+          "totalTransportLists": {
+            "type": "number",
+            "example": 40
+          },
+          "totalProviders": {
+            "type": "number",
+            "example": 20
+          },
+          "totalWarehouses": {
+            "type": "number",
+            "example": 10
+          },
+          "productStatusStats": {
+            "$ref": "#/components/schemas/ProductStatusStats"
+          },
+          "movementStats": {
+            "$ref": "#/components/schemas/MovementStats"
+          },
+          "repairStats": {
+            "$ref": "#/components/schemas/RepairStats"
+          },
+          "inspectionStats": {
+            "$ref": "#/components/schemas/InspectionStats"
+          },
+          "eventStats": {
+            "$ref": "#/components/schemas/EventStats"
+          },
+          "transportListStats": {
+            "$ref": "#/components/schemas/TransportListStats"
+          },
+          "activityTimeSeries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivityTimeSeries"
+            }
+          }
+        },
+        "required": [
+          "totalProducts",
+          "totalMovements",
+          "totalRepairs",
+          "totalInspections",
+          "totalEvents",
+          "totalTransportLists",
+          "totalProviders",
+          "totalWarehouses",
+          "productStatusStats",
+          "movementStats",
+          "repairStats",
+          "inspectionStats",
+          "eventStats",
+          "transportListStats",
+          "activityTimeSeries"
+        ]
+      },
       "UserRoleResponseDto": {
         "type": "object",
         "properties": {
@@ -11514,6 +11831,11 @@
       "CreateTransportListDto": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the transport list",
+            "example": "Transport List for CES 2025"
+          },
           "eventId": {
             "type": "number",
             "description": "The ID of the expo event this transport list belongs to",
@@ -11526,6 +11848,7 @@
           }
         },
         "required": [
+          "name",
           "eventId",
           "pdfFile"
         ]
@@ -11536,6 +11859,10 @@
           "id": {
             "type": "number",
             "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Transport List for CES 2025"
           },
           "eventId": {
             "type": "number",
@@ -11574,6 +11901,7 @@
         },
         "required": [
           "id",
+          "name",
           "eventId",
           "versionNo",
           "status",
@@ -11581,12 +11909,6 @@
           "createdAt",
           "updatedAt"
         ]
-      },
-      "UpdateTransportListDto": {
-        "type": "object",
-        "properties": {
-
-        }
       },
       "CreateTransportItemDto": {
         "type": "object",
@@ -11637,6 +11959,55 @@
             "example": "Handle with care"
           }
         }
+      },
+      "RepairResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "productId": {
+            "type": "number",
+            "example": 1
+          },
+          "storageCaseId": {
+            "type": "number",
+            "example": 1
+          },
+          "providerId": {
+            "type": "number",
+            "example": 1
+          },
+          "costAmount": {
+            "type": "number",
+            "example": 100.5
+          },
+          "startedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2025-01-01"
+          },
+          "finishedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2025-01-15"
+          },
+          "status": {
+            "type": "string",
+            "example": "IN_PROGRESS"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Repair notes"
+          }
+        },
+        "required": [
+          "id",
+          "providerId",
+          "startedAt",
+          "status"
+        ]
       },
       "CreateMovementDto": {
         "type": "object",
@@ -11713,6 +12084,113 @@
         "properties": {
 
         }
+      },
+      "GetMovementResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "productId": {
+            "type": "number",
+            "example": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "Outbound",
+              "Inbound"
+            ],
+            "example": "Outbound"
+          },
+          "movedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2025-01-01T10:00:00Z"
+          },
+          "originKind": {
+            "type": "string",
+            "enum": [
+              "Warehouse",
+              "Event",
+              "Provider",
+              "Repair"
+            ],
+            "example": "Warehouse"
+          },
+          "originRefId": {
+            "type": "string",
+            "example": "1"
+          },
+          "destKind": {
+            "type": "string",
+            "enum": [
+              "Warehouse",
+              "Event",
+              "Provider",
+              "Repair"
+            ],
+            "example": "Event"
+          },
+          "destRefId": {
+            "type": "string",
+            "example": "5"
+          },
+          "userId": {
+            "type": "number",
+            "example": 1
+          },
+          "notes": {
+            "type": "string",
+            "example": "Movement notes"
+          },
+          "originData": {
+            "description": "Origin data based on originKind",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/GetWarehouseResponse"
+              },
+              {
+                "$ref": "#/components/schemas/GetExpoEventResponse"
+              },
+              {
+                "$ref": "#/components/schemas/GetProviderResponse"
+              },
+              {
+                "$ref": "#/components/schemas/RepairResponse"
+              }
+            ]
+          },
+          "destData": {
+            "description": "Destination data based on destKind",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/GetWarehouseResponse"
+              },
+              {
+                "$ref": "#/components/schemas/GetExpoEventResponse"
+              },
+              {
+                "$ref": "#/components/schemas/GetProviderResponse"
+              },
+              {
+                "$ref": "#/components/schemas/RepairResponse"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "productId",
+          "type",
+          "movedAt",
+          "originKind",
+          "originRefId",
+          "destKind",
+          "destRefId",
+          "userId"
+        ]
       },
       "UpdateMovementDto": {
         "type": "object",

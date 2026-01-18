@@ -8,13 +8,13 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { Movement } from '../../models/movement';
+import { GetMovementResponse } from '../../models/get-movement-response';
 
 export interface MovementControllerFindByProductV1$Params {
   productId: number;
 }
 
-export function movementControllerFindByProductV1(http: HttpClient, rootUrl: string, params: MovementControllerFindByProductV1$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<Movement>>> {
+export function movementControllerFindByProductV1(http: HttpClient, rootUrl: string, params: MovementControllerFindByProductV1$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<GetMovementResponse>>> {
   const rb = new RequestBuilder(rootUrl, movementControllerFindByProductV1.PATH, 'get');
   if (params) {
     rb.path('productId', params.productId, {});
@@ -25,7 +25,7 @@ export function movementControllerFindByProductV1(http: HttpClient, rootUrl: str
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<Array<Movement>>;
+      return r as StrictHttpResponse<Array<GetMovementResponse>>;
     })
   );
 }

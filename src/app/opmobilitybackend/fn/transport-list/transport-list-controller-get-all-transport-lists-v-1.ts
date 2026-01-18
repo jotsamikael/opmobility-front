@@ -23,6 +23,11 @@ export interface TransportListControllerGetAllTransportListsV1$Params {
   limit?: number;
 
 /**
+ * Filter by transport list name
+ */
+  name?: string;
+
+/**
  * Filter by event ID
  */
   eventId?: number;
@@ -48,6 +53,7 @@ export function transportListControllerGetAllTransportListsV1(http: HttpClient, 
   if (params) {
     rb.query('page', params.page, {});
     rb.query('limit', params.limit, {});
+    rb.query('name', params.name, {});
     rb.query('eventId', params.eventId, {});
     rb.query('status', params.status, {});
     rb.query('createdBy', params.createdBy, {});

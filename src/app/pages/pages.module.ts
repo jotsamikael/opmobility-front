@@ -101,6 +101,8 @@ import { InspectionComponent } from './rmobility/inspection/inspection.component
 import { MovementComponent } from './rmobility/movement/movement.component';
 import { TransportItemComponent } from './rmobility/transport-item/transport-item.component';
 import { TransportPodiumComponent } from './rmobility/transport-podium/transport-podium.component';
+import { TransportListComponent } from './rmobility/transport-list/transport-list.component';
+import { OverviewComponent } from './rmobility/overview/overview.component';
 
 
 
@@ -111,7 +113,7 @@ import { TransportPodiumComponent } from './rmobility/transport-podium/transport
     TransportItemComponent,
     TransportPodiumComponent,
     ChatComponent, 
-    FilemanagerComponent, HelpSupportInquiryComponent, StaffComponent, ProductComponent, ProductCategoryComponent, PodiumComponent, StoragecaseComponent, ExpoEventComponent, ConsumableComponent, WarehouseComponent, LocationComponent, TownComponent, ProviderComponent, RepairComponent, InspectionComponent, MovementComponent,
+    FilemanagerComponent, HelpSupportInquiryComponent, StaffComponent, ProductComponent, ProductCategoryComponent, PodiumComponent, StoragecaseComponent, ExpoEventComponent, ConsumableComponent, WarehouseComponent, LocationComponent, TownComponent, ProviderComponent, RepairComponent, InspectionComponent, MovementComponent, TransportListComponent, OverviewComponent,
      ],
   imports: [
     LeafletModule,

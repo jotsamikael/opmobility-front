@@ -6,6 +6,7 @@ import { NgModule, ModuleWithProviders, SkipSelf, Optional } from '@angular/core
 import { HttpClient } from '@angular/common/http';
 import { ApiConfiguration, ApiConfigurationParams } from './api-configuration';
 
+import { OverviewService } from './services/overview.service';
 import { UsersService } from './services/users.service';
 import { RoleService } from './services/role.service';
 import { AuthService } from './services/auth.service';
@@ -36,6 +37,7 @@ import { TransportPodiumService } from './services/transport-podium.service';
   exports: [],
   declarations: [],
   providers: [
+    OverviewService,
     UsersService,
     RoleService,
     AuthService,

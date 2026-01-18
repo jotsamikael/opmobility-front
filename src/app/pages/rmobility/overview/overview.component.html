@@ -1,0 +1,279 @@
+<div class="page-content">
+  <div class="container-fluid">
+    <!-- start page title -->
+    <div class="row">
+      <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+          <h4 class="mb-sm-0 font-size-18">Dashboard Overview</h4>
+          <div class="page-title-right">
+            <ol class="breadcrumb m-0">
+              <li class="breadcrumb-item" *ngFor="let item of breadCrumbItems; let last = last">
+                <span *ngIf="last">{{ item.label }}</span>
+                <a *ngIf="!last" [routerLink]="['/']">{{ item.label }}</a>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- end page title -->
+
+    <!-- KPI Cards -->
+    <div class="row" *ngIf="!isLoading">
+      <div class="col-xl-4 col-md-6" *ngFor="let card of kpiCards">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex">
+              <div class="flex-1">
+                <p class="text-truncate font-size-14 mb-2">{{ card.title }}</p>
+                <h4 class="mb-2">{{ card.value | number }}</h4>
+                <p class="text-muted mb-0">
+                  <span class="text-success me-2">
+                    <i class="mdi mdi-arrow-up"></i>
+                  </span>
+                  <span class="text-nowrap">All time</span>
+                </p>
+              </div>
+              <div class="avatar-sm">
+                <span class="avatar-title bg-soft-{{ card.color }} text-{{ card.color }} rounded-3">
+                  <i [class]="card.icon"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="row" *ngIf="isLoading">
+      <div class="col-12 text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row" *ngIf="!isLoading">
+      <!-- Products by Status Chart -->
+      <div class="col-xl-6">
+        <div class="card">
+          <div class="card-body">
+            <h4 class="card-title mb-4">Products by Status</h4>
+            <apx-chart
+              class="apex-charts"
+              dir="ltr"
+              [series]="productsByStatusChart.series"
+              [chart]="productsByStatusChart.chart"
+              [labels]="productsByStatusChart.labels"
+              [colors]="productsByStatusChart.colors"
+              [legend]="productsByStatusChart.legend"
+              [plotOptions]="productsByStatusChart.plotOptions"
+              [dataLabels]="productsByStatusChart.dataLabels">
+            </apx-chart>
+          </div>
+        </div>
+      </div>
+
+      <!-- Repairs by Status Chart -->
+      <div class="col-xl-6">
+        <div class="card">
+          <div class="card-body">
+            <h4 class="card-title mb-4">Repairs by Status</h4>
+            <apx-chart
+              class="apex-charts"
+              dir="ltr"
+              [series]="repairsByStatusChart.series"
+              [chart]="repairsByStatusChart.chart"
+              [labels]="repairsByStatusChart.labels"
+              [colors]="repairsByStatusChart.colors"
+              [legend]="repairsByStatusChart.legend"
+              [dataLabels]="repairsByStatusChart.dataLabels">
+            </apx-chart>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Second Charts Row -->
+    <div class="row" *ngIf="!isLoading">
+      <!-- Movements Timeline Chart -->
+      <div class="col-xl-6">
+        <div class="card">
+          <div class="card-body">
+            <h4 class="card-title mb-4">Recent Movements Timeline</h4>
+            <apx-chart
+              class="apex-charts"
+              dir="ltr"
+              [series]="movementsTimelineChart.series"
+              [chart]="movementsTimelineChart.chart"
+              [xaxis]="movementsTimelineChart.xaxis"
+              [colors]="movementsTimelineChart.colors"
+              [fill]="movementsTimelineChart.fill"
+              [dataLabels]="movementsTimelineChart.dataLabels"
+              [stroke]="movementsTimelineChart.stroke"
+              [tooltip]="movementsTimelineChart.tooltip">
+            </apx-chart>
+          </div>
+        </div>
+      </div>
+
+      <!-- Events by Status Chart -->
+      <div class="col-xl-6">
+        <div class="card">
+          <div class="card-body">
+            <h4 class="card-title mb-4">Events by Status</h4>
+            <apx-chart
+              class="apex-charts"
+              dir="ltr"
+              [series]="eventsByStatusChart.series"
+              [chart]="eventsByStatusChart.chart"
+              [xaxis]="eventsByStatusChart.xaxis"
+              [colors]="eventsByStatusChart.colors"
+              [plotOptions]="eventsByStatusChart.plotOptions"
+              [dataLabels]="eventsByStatusChart.dataLabels"
+              [fill]="eventsByStatusChart.fill">
+            </apx-chart>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity Tables -->
+    <div class="row" *ngIf="!isLoading">
+      <!-- Recent Movements -->
+      <div class="col-xl-6">
+        <div class="card">
+          <div class="card-body">
+            <h4 class="card-title mb-4">Recent Movements</h4>
+            <div class="table-responsive">
+              <table class="table table-nowrap table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th scope="col">Product ID</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Origin</th>
+                    <th scope="col">Destination</th>
+                    <th scope="col">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let movement of stats.recentMovements; let i = index" [class.table-light]="i % 2 === 0">
+                    <td>{{ movement.productId }}</td>
+                    <td>
+                      <span class="badge bg-{{ movement.type === 'OUTBOUND' ? 'warning' : 'success' }}">
+                        {{ movement.type }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge bg-info">{{ movement.originKind }}</span>
+                      <small class="text-muted d-block">{{ movement.originRefId }}</small>
+                    </td>
+                    <td>
+                      <span class="badge bg-primary">{{ movement.destKind }}</span>
+                      <small class="text-muted d-block">{{ movement.destRefId }}</small>
+                    </td>
+                    <td>{{ movement.movedAt | date: 'short' }}</td>
+                  </tr>
+                  <tr *ngIf="stats.recentMovements.length === 0">
+                    <td colspan="5" class="text-center text-muted">No recent movements</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Events -->
+      <div class="col-xl-6">
+        <div class="card">
+          <div class="card-body">
+            <h4 class="card-title mb-4">Recent Events</h4>
+            <div class="table-responsive">
+              <table class="table table-nowrap table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Location</th>
+                    <th scope="col">Start Date</th>
+                    <th scope="col">End Date</th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let event of stats.recentEvents; let i = index" [class.table-light]="i % 2 === 0">
+                    <td>{{ event.name }}</td>
+                    <td>
+                      <span *ngIf="event.town">{{ event.town.name }}, {{ event.town.country?.name }}</span>
+                      <span *ngIf="!event.town" class="text-muted">N/A</span>
+                    </td>
+                    <td>{{ event.startDate | date: 'short' }}</td>
+                    <td>{{ event.endDate | date: 'short' }}</td>
+                    <td>
+                      <span class="badge bg-{{ event.status === 'InProgress' ? 'success' : event.status === 'Closed' ? 'secondary' : 'info' }}">
+                        {{ event.status }}
+                      </span>
+                    </td>
+                  </tr>
+                  <tr *ngIf="stats.recentEvents.length === 0">
+                    <td colspan="5" class="text-center text-muted">No recent events</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Statistics Row -->
+    <div class="row" *ngIf="!isLoading">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <h4 class="card-title mb-4">Summary Statistics</h4>
+            <div class="row">
+              <div class="col-md-3 col-sm-6 mb-3">
+                <div class="text-center">
+                  <h5 class="text-primary">{{ stats.totalProducts }}</h5>
+                  <p class="text-muted mb-0">Total Products</p>
+                </div>
+              </div>
+              <div class="col-md-3 col-sm-6 mb-3">
+                <div class="text-center">
+                  <h5 class="text-success">{{ stats.totalStorageCases }}</h5>
+                  <p class="text-muted mb-0">Storage Cases</p>
+                </div>
+              </div>
+              <div class="col-md-3 col-sm-6 mb-3">
+                <div class="text-center">
+                  <h5 class="text-info">{{ stats.totalPodiums }}</h5>
+                  <p class="text-muted mb-0">Podiums</p>
+                </div>
+              </div>
+              <div class="col-md-3 col-sm-6 mb-3">
+                <div class="text-center">
+                  <h5 class="text-warning">{{ stats.totalTransportLists }}</h5>
+                  <p class="text-muted mb-0">Transport Lists</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Refresh Button -->
+    <div class="row" *ngIf="!isLoading">
+      <div class="col-12">
+        <div class="text-center mb-4">
+          <button type="button" class="btn btn-primary btn-lg" (click)="refreshData()" [disabled]="isLoading">
+            <i class="bx bx-refresh me-2"></i>Refresh Data
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

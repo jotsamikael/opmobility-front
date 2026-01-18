@@ -8,7 +8,7 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { Movement } from '../../models/movement';
+import { GetMovementResponse } from '../../models/get-movement-response';
 
 export interface MovementControllerFindByDestinationV1$Params {
 
@@ -23,7 +23,7 @@ export interface MovementControllerFindByDestinationV1$Params {
   destRefId: number;
 }
 
-export function movementControllerFindByDestinationV1(http: HttpClient, rootUrl: string, params: MovementControllerFindByDestinationV1$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<Movement>>> {
+export function movementControllerFindByDestinationV1(http: HttpClient, rootUrl: string, params: MovementControllerFindByDestinationV1$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<GetMovementResponse>>> {
   const rb = new RequestBuilder(rootUrl, movementControllerFindByDestinationV1.PATH, 'get');
   if (params) {
     rb.path('destKind', params.destKind, {});
@@ -35,7 +35,7 @@ export function movementControllerFindByDestinationV1(http: HttpClient, rootUrl:
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<Array<Movement>>;
+      return r as StrictHttpResponse<Array<GetMovementResponse>>;
     })
   );
 }

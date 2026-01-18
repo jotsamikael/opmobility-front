@@ -8,16 +8,14 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { GetMovementResponse } from '../../models/get-movement-response';
+import { OverviewStatisticsDto } from '../../models/overview-statistics-dto';
 
-export interface MovementControllerFindOneV1$Params {
-  id: number;
+export interface AppControllerGetOverviewStatisticsV1$Params {
 }
 
-export function movementControllerFindOneV1(http: HttpClient, rootUrl: string, params: MovementControllerFindOneV1$Params, context?: HttpContext): Observable<StrictHttpResponse<GetMovementResponse>> {
-  const rb = new RequestBuilder(rootUrl, movementControllerFindOneV1.PATH, 'get');
+export function appControllerGetOverviewStatisticsV1(http: HttpClient, rootUrl: string, params?: AppControllerGetOverviewStatisticsV1$Params, context?: HttpContext): Observable<StrictHttpResponse<OverviewStatisticsDto>> {
+  const rb = new RequestBuilder(rootUrl, appControllerGetOverviewStatisticsV1.PATH, 'get');
   if (params) {
-    rb.path('id', params.id, {});
   }
 
   return http.request(
@@ -25,9 +23,9 @@ export function movementControllerFindOneV1(http: HttpClient, rootUrl: string, p
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<GetMovementResponse>;
+      return r as StrictHttpResponse<OverviewStatisticsDto>;
     })
   );
 }
 
-movementControllerFindOneV1.PATH = '/api/v1/movement/{id}';
+appControllerGetOverviewStatisticsV1.PATH = '/api/v1/overview/statistics';

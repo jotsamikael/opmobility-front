@@ -9,11 +9,30 @@ import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
 import { GetTransportListResponse } from '../../models/get-transport-list-response';
-import { UpdateTransportListDto } from '../../models/update-transport-list-dto';
 
 export interface TransportListControllerUpdateV1$Params {
   id: number;
-      body: UpdateTransportListDto
+  
+    /**
+     * Update transport list data with optional PDF file
+     */
+    body: {
+
+/**
+ * Name of the transport list
+ */
+'name'?: string;
+
+/**
+ * The ID of the expo event this transport list belongs to
+ */
+'eventId'?: number;
+
+/**
+ * PDF file for the transport list (optional)
+ */
+'pdfFile'?: Blob;
+}
 }
 
 export function transportListControllerUpdateV1(http: HttpClient, rootUrl: string, params: TransportListControllerUpdateV1$Params, context?: HttpContext): Observable<StrictHttpResponse<GetTransportListResponse>> {
