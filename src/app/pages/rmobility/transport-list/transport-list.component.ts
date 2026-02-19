@@ -6,6 +6,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatStepper } from '@angular/material/stepper';
 import { startWith, map, Observable, forkJoin } from 'rxjs';
+import { Router } from '@angular/router';
 import { GlobalFormBuilder } from 'src/app/core/globalFormBuilder';
 import { NotificationService } from 'src/app/core/services/notification.service';
 import Swal from 'sweetalert2';
@@ -138,7 +139,8 @@ export class TransportListComponent implements OnInit, AfterViewInit {
     private transportPodiumService: TransportPodiumService,
     private transportItemService: TransportItemService,
     private notificationService: NotificationService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private router: Router
   ) {
     this.breadCrumbItems = [
       { label: 'RMobility' },
@@ -815,58 +817,7 @@ export class TransportListComponent implements OnInit, AfterViewInit {
     if (!transportList?.id) {
       return;
     }
-
-    forkJoin({
-      transport: this.transportListService.transportListControllerFindOneV1$Response({ id: transportList.id } as any),
-      podiums: this.transportPodiumService.transportPodiumControllerFindAllV1$Response({ transportListId: transportList.id } as any),
-      products: this.transportItemService.transportItemControllerFindAllV1$Response({ transportListId: transportList.id } as any)
-    }).subscribe({
-      next: ({ transport, podiums, products }) => {
-        const t = transport.body as any;
-        const podiumItems = (podiums.body as any[]) || [];
-        const productItems = (products.body as any[]) || [];
-
-        const podiumHtml = podiumItems.length
-          ? podiumItems.map((p) => {
-              const podium = (p as any).podium;
-              const label = podium ? this.displayPodium(podium) : `Podium ID: ${(p as any).podiumId || 'N/A'}`;
-              return `<li>${label}</li>`;
-            }).join('')
-          : '<li>No podium assigned</li>';
-
-        const productHtml = productItems.length
-          ? productItems.map((item) => {
-              const product = (item as any).product;
-              const label = product ? this.displayProduct(product) : `Product ID: ${(item as any).productId || 'N/A'}`;
-              return `<li>${label}</li>`;
-            }).join('')
-          : '<li>No product assigned</li>';
-
-        Swal.fire({
-          title: `Transport #${t.id}`,
-          width: '900px',
-          confirmButtonColor: '#556ee6',
-          html: `
-            <div class="text-start">
-              <h6 class="mb-2">Transport information</h6>
-              <p class="mb-1"><strong>Name:</strong> ${t.name || 'N/A'}</p>
-              <p class="mb-1"><strong>Status:</strong> ${t.status || 'N/A'}</p>
-              <p class="mb-3"><strong>Event ID:</strong> ${t.eventId || 'N/A'}</p>
-
-              <h6 class="mb-2">Podiums</h6>
-              <ul class="mb-3">${podiumHtml}</ul>
-
-              <h6 class="mb-2">Products</h6>
-              <ul class="mb-0">${productHtml}</ul>
-            </div>
-          `
-        });
-      },
-      error: (error) => {
-        console.error('Error loading transport details:', error);
-        this.notificationService.error('Failed to load transport details. Please try again.');
-      }
-    });
+    this.router.navigate(['/transport-list', transportList.id]);
   }
 
   /**

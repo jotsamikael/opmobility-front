@@ -100,6 +100,7 @@ import { RepairComponent } from './rmobility/repair/repair.component';
 import { InspectionComponent } from './rmobility/inspection/inspection.component';
 import { MovementComponent } from './rmobility/movement/movement.component';
 import { TransportListComponent } from './rmobility/transport-list/transport-list.component';
+import { TransportDetailComponent } from './rmobility/transport-detail/transport-detail.component';
 import { OverviewComponent } from './rmobility/overview/overview.component';
 
 
@@ -109,8 +110,8 @@ import { OverviewComponent } from './rmobility/overview/overview.component';
 @NgModule({
   declarations: [CalendarComponent, 
     ChatComponent, 
-    FilemanagerComponent, HelpSupportInquiryComponent, StaffComponent, ProductComponent, ProductCategoryComponent, PodiumComponent, StoragecaseComponent, ExpoEventComponent, ConsumableComponent, WarehouseComponent, LocationComponent, TownComponent, ProviderComponent, RepairComponent, InspectionComponent, MovementComponent, TransportListComponent, OverviewComponent,
-     ],
+    FilemanagerComponent, HelpSupportInquiryComponent, StaffComponent, ProductComponent, ProductCategoryComponent, PodiumComponent, StoragecaseComponent, ExpoEventComponent, ConsumableComponent, WarehouseComponent, LocationComponent, TownComponent, ProviderComponent, RepairComponent, InspectionComponent, MovementComponent, TransportListComponent, TransportDetailComponent, OverviewComponent,
+      ],
   imports: [
     LeafletModule,
     CKEditorModule,
