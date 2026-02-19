@@ -285,6 +285,7 @@
                     <mat-label>Name</mat-label>
                     <input matInput formControlName="name" placeholder="Enter transport list name" maxlength="255">
                     <mat-icon matPrefix class="me-2">title</mat-icon>
+                    <mat-error *ngIf="transportListForm.get('name')?.hasError('required')">Name is required</mat-error>
                   </mat-form-field>
                 </div>
 
@@ -298,6 +299,7 @@
                       </mat-option>
                     </mat-autocomplete>
                     <mat-icon matPrefix class="me-2">event</mat-icon>
+                    <mat-error *ngIf="transportListForm.get('eventId')?.hasError('required')">Event is required</mat-error>
                   </mat-form-field>
                 </div>
               </div>
@@ -307,6 +309,7 @@
                   <label class="form-label">PDF File <span class="text-danger">*</span></label>
                   <input type="file" class="form-control" (change)="onPdfFileSelected($event)" accept=".pdf" required>
                   <small class="form-text text-muted">PDF files only (max 10MB)</small>
+                  <small class="text-danger d-block" *ngIf="!selectedPdfFile">PDF file is required to continue.</small>
                   <div *ngIf="selectedPdfFile" class="mt-2">
                     <span class="badge bg-info">{{ selectedPdfFile.name }}</span>
                   </div>

@@ -681,8 +681,25 @@ export class TransportListComponent implements OnInit, AfterViewInit {
   }
 
   submitTransportStep(stepper: MatStepper): void {
+    const eventControlValue = this.eventInputControl.value;
+
+    if (!this.transportListForm.get('eventId')?.value) {
+      if (eventControlValue && typeof eventControlValue !== 'string' && (eventControlValue as any).id) {
+        this.transportListForm.patchValue({ eventId: (eventControlValue as any).id }, { emitEvent: false });
+      }
+
+      if (eventControlValue && typeof eventControlValue === 'string') {
+        const matchingEvent = this.eventOptions.find((event) => this.displayEvent(event).toLowerCase() === eventControlValue.toLowerCase());
+        if (matchingEvent && (matchingEvent as any).id) {
+          this.transportListForm.patchValue({ eventId: (matchingEvent as any).id }, { emitEvent: false });
+          this.eventInputControl.setValue(matchingEvent, { emitEvent: false });
+        }
+      }
+    }
+
     if (this.transportListForm.invalid) {
       this.transportListForm.markAllAsTouched();
+      this.notificationService.error('Please fill all required transport information.');
       return;
     }
 
