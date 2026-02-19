@@ -206,14 +206,6 @@ export const MENU: MenuItem[] = [
     isTitle: true
 },
     {
-        id: 7,
-        label: 'Cron Jobs',
-        icon: 'bxs-timer',
-        link: 'cron-job-management',
-        roles: ['ADMIN','OPERATOR']
-
-    },
-    {
         id: 8,
         label: 'Help & Support',
         icon: 'bxs-conversation',
@@ -2280,4 +2272,3 @@ export const MENU: MenuItem[] = [
         ]
     }
 ];*/
-
