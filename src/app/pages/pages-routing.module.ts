@@ -21,8 +21,6 @@ import { ConsumableComponent } from './rmobility/consumable/consumable.component
 import { PodiumComponent } from './rmobility/podium/podium.component';
 import { StoragecaseComponent } from './rmobility/storagecase/storagecase.component';
 import { ExpoEventComponent } from './rmobility/expo-event/expo-event.component';
-import { TransportItemComponent } from './rmobility/transport-item/transport-item.component';
-import { TransportPodiumComponent } from './rmobility/transport-podium/transport-podium.component';
 import { TransportListComponent } from './rmobility/transport-list/transport-list.component';
 import { OverviewComponent } from './rmobility/overview/overview.component';
 
@@ -48,8 +46,6 @@ const routes: Routes = [
  {path:'movement',component:MovementComponent},
  {path:'consumable',component:ConsumableComponent},
  {path:'expo-event',component:ExpoEventComponent},
- {path:'transport-product', component:TransportItemComponent},
-{path:'transport-podium', component:TransportPodiumComponent},
 {path:'transport-list',component:TransportListComponent},
 {path:'overview',component:OverviewComponent},
 

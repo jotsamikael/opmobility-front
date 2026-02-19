@@ -194,6 +194,15 @@
                   </td>
                 </ng-container>
 
+                <ng-container matColumnDef="view">
+                  <th mat-header-cell *matHeaderCellDef> Details </th>
+                  <td mat-cell *matCellDef="let row">
+                    <button mat-icon-button color="primary" (click)="onViewTransportDetails(row)">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                  </td>
+                </ng-container>
+
                 <!-- Actions Column -->
                 <ng-container matColumnDef="actions">
                   <th mat-header-cell *matHeaderCellDef> Actions </th>
@@ -256,95 +265,217 @@
 
 <!-- Create/Edit Modal Template -->
 <ng-template #modalTemplate>
-    <div class="p-3">
-        <h2 mat-dialog-title class="d-flex align-items-center mb-3">
-            <mat-icon class="me-2" [style.color]="isEditMode ? '#556ee6' : '#34c38f'">
-                {{ isEditMode ? 'edit' : 'add_box' }}
-            </mat-icon>
-            {{ getModalTitle() }}
-        </h2>
-        
-        <mat-dialog-content class="mat-typography">
-            <form [formGroup]="transportListForm">
-                <div class="modal-body mt-3">
-                  <div class="row">
-                    <!-- Name -->
-                    <div class="col-md-6">
-                      <mat-form-field appearance="outline" class="w-100">
-                        <mat-label>Name</mat-label>
-                        <input matInput formControlName="name" placeholder="Enter transport list name" maxlength="255">
-                        <mat-icon matPrefix class="me-2">title</mat-icon>
-                        <mat-hint>{{transportListForm.get('name')?.value?.length || 0}} / 255</mat-hint>
-                        <mat-error *ngIf="transportListForm.get('name')?.hasError('required')">
-                          Name is required
-                        </mat-error>
-                        <mat-error *ngIf="transportListForm.get('name')?.hasError('maxlength')">
-                          Name cannot exceed 255 characters
-                        </mat-error>
-                      </mat-form-field>
-                    </div>
-                    
-                    <!-- Event -->
-                    <div class="col-md-6">
-                      <mat-form-field appearance="outline" class="w-100">
-                        <mat-label>Expo Event</mat-label>
-                        <input matInput [formControl]="eventInputControl" [matAutocomplete]="eventAuto" placeholder="Search event">
-                        <mat-autocomplete #eventAuto="matAutocomplete" [displayWith]="displayEvent" (optionSelected)="onEventSelected($event)">
-                          <mat-option *ngFor="let event of filteredEvents | async" [value]="event">
-                            {{displayEvent(event)}}
-                          </mat-option>
-                        </mat-autocomplete>
-                        <mat-icon matPrefix class="me-2">event</mat-icon>
-                        <mat-error *ngIf="transportListForm.get('eventId')?.hasError('required')">
-                          Event is required
-                        </mat-error>
-                      </mat-form-field>
-                    </div>
-                  </div>
+  <div class="p-3">
+    <h2 mat-dialog-title class="d-flex align-items-center mb-3">
+      <mat-icon class="me-2" [style.color]="isEditMode ? '#556ee6' : '#34c38f'">
+        {{ isEditMode ? 'edit' : 'add_box' }}
+      </mat-icon>
+      {{ getModalTitle() }}
+    </h2>
 
-                  <div class="row">
-                    <!-- PDF File Upload -->
-                    <div class="col-md-12">
-                      <label class="form-label">
-                        <mat-icon class="me-2" style="vertical-align: middle;">description</mat-icon>
-                        PDF File <span *ngIf="!isEditMode" class="text-danger">*</span>
-                      </label>
-                      <input type="file" class="form-control" (change)="onPdfFileSelected($event)" accept=".pdf" [required]="!isEditMode">
-                      <small class="form-text text-muted">PDF files only (max 10MB)</small>
-                      
-                      <!-- Current PDF File Display -->
-                      <div *ngIf="currentPdfUrl && !selectedPdfFile" class="mb-2 mt-2">
-                        <p class="text-muted mb-1">Current PDF File:</p>
-                        <a [href]="currentPdfUrl" target="_blank" class="text-primary">
-                          <mat-icon>description</mat-icon>
-                          View Current PDF
-                        </a>
-                      </div>
-                      
-                      <!-- Selected PDF File Name -->
-                      <div *ngIf="selectedPdfFile" class="mb-2 mt-2">
-                        <p class="text-muted mb-1">Selected File:</p>
-                        <span class="badge bg-info">{{selectedPdfFile.name}}</span>
-                        <button mat-icon-button (click)="removePdfFile()" class="ms-2">
-                          <mat-icon>delete</mat-icon>
-                        </button>
-                      </div>
-                    </div>
+    <mat-dialog-content class="mat-typography">
+      <ng-container *ngIf="!isEditMode; else editModeTemplate">
+        <mat-stepper #transportStepper linear (selectionChange)="onStepChange($event.selectedIndex)">
+          <mat-step [stepControl]="transportListForm">
+            <ng-template matStepLabel>Transport Info</ng-template>
+            <form [formGroup]="transportListForm" class="mt-3">
+              <div class="row">
+                <div class="col-md-6">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Name</mat-label>
+                    <input matInput formControlName="name" placeholder="Enter transport list name" maxlength="255">
+                    <mat-icon matPrefix class="me-2">title</mat-icon>
+                  </mat-form-field>
+                </div>
+
+                <div class="col-md-6">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Expo Event</mat-label>
+                    <input matInput [formControl]="eventInputControl" [matAutocomplete]="eventAuto" placeholder="Search event">
+                    <mat-autocomplete #eventAuto="matAutocomplete" [displayWith]="displayEvent" (optionSelected)="onEventSelected($event)">
+                      <mat-option *ngFor="let event of filteredEvents | async" [value]="event">
+                        {{ displayEvent(event) }}
+                      </mat-option>
+                    </mat-autocomplete>
+                    <mat-icon matPrefix class="me-2">event</mat-icon>
+                  </mat-form-field>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-12">
+                  <label class="form-label">PDF File <span class="text-danger">*</span></label>
+                  <input type="file" class="form-control" (change)="onPdfFileSelected($event)" accept=".pdf" required>
+                  <small class="form-text text-muted">PDF files only (max 10MB)</small>
+                  <div *ngIf="selectedPdfFile" class="mt-2">
+                    <span class="badge bg-info">{{ selectedPdfFile.name }}</span>
                   </div>
                 </div>
+              </div>
+
+              <div class="d-flex justify-content-end mt-3 gap-2">
+                <button mat-stroked-button type="button" (click)="closeModal()">Cancel</button>
+                <button mat-raised-button color="primary" type="button" (click)="submitTransportStep(transportStepper)" [disabled]="isCreatingTransport">
+                  <mat-spinner *ngIf="isCreatingTransport" diameter="20" style="display: inline-block;"></mat-spinner>
+                  <span *ngIf="!isCreatingTransport">Create and continue</span>
+                </button>
+              </div>
             </form>
-        </mat-dialog-content>
-        
+          </mat-step>
+
+          <mat-step>
+            <ng-template matStepLabel>Add Podiums</ng-template>
+            <div class="mt-3">
+              <p class="text-muted mb-2">Transport ID: <strong>#{{ createdTransportList?.id }}</strong></p>
+              <div class="row">
+                <div class="col-md-6">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Podium</mat-label>
+                    <input matInput [formControl]="podiumInputControl" [matAutocomplete]="podiumAuto" placeholder="Search podium">
+                    <mat-autocomplete #podiumAuto="matAutocomplete" [displayWith]="displayPodium">
+                      <mat-option *ngFor="let podium of filteredPodiums | async" [value]="podium">
+                        {{ displayPodium(podium) }}
+                      </mat-option>
+                    </mat-autocomplete>
+                  </mat-form-field>
+                </div>
+                <div class="col-md-3">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Gross Weight (kg)</mat-label>
+                    <input matInput type="number" [formControl]="podiumWeightControl" min="0" step="0.001">
+                  </mat-form-field>
+                </div>
+                <div class="col-md-3 d-flex align-items-center">
+                  <button mat-raised-button color="primary" type="button" (click)="addPodiumSelection()">
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-12">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Notes</mat-label>
+                    <input matInput [formControl]="podiumNotesControl" placeholder="Optional notes">
+                  </mat-form-field>
+                </div>
+              </div>
+
+              <div class="mb-3" *ngIf="selectedPodiums.length">
+                <h6>Selected podiums</h6>
+                <div class="d-flex flex-column gap-2">
+                  <div class="d-flex justify-content-between align-items-center border rounded p-2" *ngFor="let item of selectedPodiums; let i = index">
+                    <span>{{ item.podiumLabel }}</span>
+                    <button mat-icon-button color="warn" (click)="removePodiumSelection(i)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-between mt-3">
+                <button mat-stroked-button type="button" matStepperPrevious>Back</button>
+                <button mat-raised-button color="primary" type="button" (click)="submitPodiumsStep(transportStepper)" [disabled]="isSavingPodiums">
+                  <mat-spinner *ngIf="isSavingPodiums" diameter="20" style="display: inline-block;"></mat-spinner>
+                  <span *ngIf="!isSavingPodiums">Save podiums and continue</span>
+                </button>
+              </div>
+            </div>
+          </mat-step>
+
+          <mat-step>
+            <ng-template matStepLabel>Add Products</ng-template>
+            <div class="mt-3">
+              <p class="text-muted mb-2">Transport ID: <strong>#{{ createdTransportList?.id }}</strong></p>
+              <div class="row">
+                <div class="col-md-8">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Product</mat-label>
+                    <input matInput [formControl]="productInputControl" [matAutocomplete]="productAuto" placeholder="Search product">
+                    <mat-autocomplete #productAuto="matAutocomplete" [displayWith]="displayProduct">
+                      <mat-option *ngFor="let product of filteredProducts | async" [value]="product">
+                        {{ displayProduct(product) }}
+                      </mat-option>
+                    </mat-autocomplete>
+                  </mat-form-field>
+                </div>
+                <div class="col-md-4 d-flex align-items-center">
+                  <button mat-raised-button color="primary" type="button" (click)="addProductSelection()">Add</button>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-12">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Notes</mat-label>
+                    <input matInput [formControl]="productNotesControl" placeholder="Optional notes">
+                  </mat-form-field>
+                </div>
+              </div>
+
+              <div class="mb-3" *ngIf="selectedProducts.length">
+                <h6>Selected products</h6>
+                <div class="d-flex flex-column gap-2">
+                  <div class="d-flex justify-content-between align-items-center border rounded p-2" *ngFor="let item of selectedProducts; let i = index">
+                    <span>{{ item.productLabel }}</span>
+                    <button mat-icon-button color="warn" (click)="removeProductSelection(i)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-between mt-3">
+                <button mat-stroked-button type="button" matStepperPrevious>Back</button>
+                <button mat-raised-button color="primary" type="button" (click)="submitProductsStep()" [disabled]="isSavingProducts">
+                  <mat-spinner *ngIf="isSavingProducts" diameter="20" style="display: inline-block;"></mat-spinner>
+                  <span *ngIf="!isSavingProducts">Finish creation</span>
+                </button>
+              </div>
+            </div>
+          </mat-step>
+        </mat-stepper>
+      </ng-container>
+
+      <ng-template #editModeTemplate>
+        <form [formGroup]="transportListForm">
+          <div class="modal-body mt-3">
+            <div class="row">
+              <div class="col-md-6">
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>Name</mat-label>
+                  <input matInput formControlName="name" placeholder="Enter transport list name" maxlength="255">
+                </mat-form-field>
+              </div>
+              <div class="col-md-6">
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>Expo Event</mat-label>
+                  <input matInput [formControl]="eventInputControl" [matAutocomplete]="eventAuto" placeholder="Search event">
+                  <mat-autocomplete #eventAuto="matAutocomplete" [displayWith]="displayEvent" (optionSelected)="onEventSelected($event)">
+                    <mat-option *ngFor="let event of filteredEvents | async" [value]="event">
+                      {{displayEvent(event)}}
+                    </mat-option>
+                  </mat-autocomplete>
+                </mat-form-field>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <label class="form-label">PDF File</label>
+                <input type="file" class="form-control" (change)="onPdfFileSelected($event)" accept=".pdf">
+              </div>
+            </div>
+          </div>
+        </form>
+
         <mat-dialog-actions align="end" class="mt-3">
-            <button mat-stroked-button (click)="closeModal()" [disabled]="isSubmitting">
-                <mat-icon>close</mat-icon>
-                Cancel
-            </button>
-            <button mat-raised-button color="primary" (click)="onSubmitForm()" [disabled]="isSubmitting || transportListForm.invalid">
-                <mat-icon *ngIf="!isSubmitting">{{ isEditMode ? 'save' : 'add_box' }}</mat-icon>
-                <mat-spinner *ngIf="isSubmitting" diameter="20" style="display: inline-block;"></mat-spinner>
-                {{ isSubmitting ? 'Saving...' : getSubmitButtonText() }}
-            </button>
+          <button mat-stroked-button (click)="closeModal()" [disabled]="isSubmitting">Cancel</button>
+          <button mat-raised-button color="primary" (click)="onSubmitForm()" [disabled]="isSubmitting || transportListForm.invalid">
+            <mat-spinner *ngIf="isSubmitting" diameter="20" style="display: inline-block;"></mat-spinner>
+            <span *ngIf="!isSubmitting">{{ getSubmitButtonText() }}</span>
+          </button>
         </mat-dialog-actions>
-    </div>
+      </ng-template>
+    </mat-dialog-content>
+  </div>
 </ng-template>

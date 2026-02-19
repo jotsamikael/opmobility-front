@@ -1,18 +1,18 @@
 import { AfterViewInit, Component, OnInit, ViewChild, TemplateRef } from '@angular/core';
-import { FormControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { debounceTime, distinctUntilChanged, startWith, map, Observable } from 'rxjs';
+import { MatStepper } from '@angular/material/stepper';
+import { startWith, map, Observable, forkJoin } from 'rxjs';
 import { GlobalFormBuilder } from 'src/app/core/globalFormBuilder';
 import { NotificationService } from 'src/app/core/services/notification.service';
-import { CommonService } from 'src/app/core/services/common.service';
 import Swal from 'sweetalert2';
 import { GetTransportListResponse } from 'src/app/opmobilitybackend/models/get-transport-list-response';
-import { CreateTransportListDto } from 'src/app/opmobilitybackend/models/create-transport-list-dto';
 import { GetExpoEventResponse } from 'src/app/opmobilitybackend/models/get-expo-event-response';
-import { TransportListService, ExpoEventService } from 'src/app/opmobilitybackend/services';
+import { Podium, ProductResponse } from 'src/app/opmobilitybackend/models';
+import { TransportListService, ExpoEventService, PodiumService, ProductService, TransportPodiumService, TransportItemService } from 'src/app/opmobilitybackend/services';
 
 // Transport list filters interface
 export interface TransportListFilters {
@@ -31,6 +31,19 @@ export const TRANSPORT_LIST_STATUSES = [
   { value: 'Archived', label: 'Archived' }
 ];
 
+interface SelectedTransportPodium {
+  podiumId: number;
+  podiumLabel: string;
+  grossWeightKg?: number | null;
+  notes?: string;
+}
+
+interface SelectedTransportProduct {
+  productId: number;
+  productLabel: string;
+  notes?: string;
+}
+
 @Component({
   selector: 'app-transport-list',
   templateUrl: './transport-list.component.html',
@@ -43,7 +56,7 @@ export class TransportListComponent implements OnInit, AfterViewInit {
   Math = Math;
   
   // Table properties
-  displayedColumns: string[] = ['id', 'name', 'event', 'status', 'versionNo', 'pdfUrl', 'createdAt', 'updatedAt', 'actions'];
+  displayedColumns: string[] = ['id', 'name', 'event', 'status', 'versionNo', 'pdfUrl', 'createdAt', 'updatedAt', 'view', 'actions'];
   dataSource: MatTableDataSource<GetTransportListResponse> = new MatTableDataSource<GetTransportListResponse>([]);
  
   // Pagination properties
@@ -70,12 +83,21 @@ export class TransportListComponent implements OnInit, AfterViewInit {
   // Options for dropdowns/autocomplete
   transportListStatuses = TRANSPORT_LIST_STATUSES;
   eventOptions: GetExpoEventResponse[] = [];
+  podiumOptions: Podium[] = [];
+  productOptions: ProductResponse[] = [];
   
   // Form controls for autocomplete
   eventInputControl = new FormControl<string | GetExpoEventResponse | null>(null);
+  podiumInputControl = new FormControl<string | Podium | null>(null);
+  productInputControl = new FormControl<string | ProductResponse | null>(null);
+  podiumNotesControl = new FormControl<string>('');
+  productNotesControl = new FormControl<string>('');
+  podiumWeightControl = new FormControl<number | null>(null);
   
   // Autocomplete observables
   filteredEvents: Observable<GetExpoEventResponse[]>;
+  filteredPodiums: Observable<Podium[]>;
+  filteredProducts: Observable<ProductResponse[]>;
   
   private autocompletePanelOpen = false;
 
@@ -88,6 +110,14 @@ export class TransportListComponent implements OnInit, AfterViewInit {
   transportListForm: FormGroup;
   selectedTransportList: GetTransportListResponse | null = null;
   isSubmitting = false;
+  isCreatingTransport = false;
+  isSavingPodiums = false;
+  isSavingProducts = false;
+
+  currentStepperIndex = 0;
+  createdTransportList: GetTransportListResponse | null = null;
+  selectedPodiums: SelectedTransportPodium[] = [];
+  selectedProducts: SelectedTransportProduct[] = [];
   isEditMode = false;
   selectedPdfFile: File | null = null;
   pdfFilePreview: string | null = null;
@@ -103,8 +133,11 @@ export class TransportListComponent implements OnInit, AfterViewInit {
     private formBuilder: GlobalFormBuilder,
     private transportListService: TransportListService,
     private expoEventService: ExpoEventService,
+    private podiumService: PodiumService,
+    private productService: ProductService,
+    private transportPodiumService: TransportPodiumService,
+    private transportItemService: TransportItemService,
     private notificationService: NotificationService,
-    private commonService: CommonService,
     private dialog: MatDialog
   ) {
     this.breadCrumbItems = [
@@ -127,10 +160,22 @@ export class TransportListComponent implements OnInit, AfterViewInit {
         return this.eventOptions.slice();
       })
     );
+
+    this.filteredPodiums = this.podiumInputControl.valueChanges.pipe(
+      startWith(''),
+      map((value) => this.filterPodiums(value))
+    );
+
+    this.filteredProducts = this.productInputControl.valueChanges.pipe(
+      startWith(''),
+      map((value) => this.filterProducts(value))
+    );
   }
 
   ngOnInit(): void {
     this.loadEvents();
+    this.loadPodiums();
+    this.loadProducts();
     this.loadTransportLists();
   }
 
@@ -238,6 +283,124 @@ export class TransportListComponent implements OnInit, AfterViewInit {
     return `${event.name || ''} - ${event.place || ''}`.trim();
   }
 
+  loadPodiums(): void {
+    this.podiumService.podiumControllerGetAllPodiumsV1$Response({ page: 1, limit: 1000 } as any).subscribe({
+      next: (response) => {
+        const responseBody = response.body as any;
+        this.podiumOptions = responseBody?.items || responseBody || [];
+      },
+      error: () => {
+        this.podiumOptions = [];
+      }
+    });
+  }
+
+  loadProducts(): void {
+    this.productService.productControllerGetAllProductsV1$Response({ page: 1, limit: 1000 } as any).subscribe({
+      next: (response) => {
+        const responseBody = response.body as any;
+        this.productOptions = responseBody?.items || responseBody || [];
+      },
+      error: () => {
+        this.productOptions = [];
+      }
+    });
+  }
+
+  filterPodiums(value: string | Podium | null): Podium[] {
+    if (!value || typeof value !== 'string') {
+      return this.podiumOptions;
+    }
+
+    const filterValue = value.toLowerCase();
+    return this.podiumOptions.filter((podium) => {
+      const p = podium as any;
+      return (p.ref || '').toLowerCase().includes(filterValue) || (p.name || '').toLowerCase().includes(filterValue);
+    });
+  }
+
+  filterProducts(value: string | ProductResponse | null): ProductResponse[] {
+    if (!value || typeof value !== 'string') {
+      return this.productOptions;
+    }
+
+    const filterValue = value.toLowerCase();
+    return this.productOptions.filter((product) => {
+      return (product.ref || '').toLowerCase().includes(filterValue) || (product.name || '').toLowerCase().includes(filterValue);
+    });
+  }
+
+  displayPodium(podium: Podium | null): string {
+    if (!podium) return '';
+    const p = podium as any;
+    return `${p.ref || ''} - ${p.name || ''}`.trim();
+  }
+
+  displayProduct(product: ProductResponse | null): string {
+    if (!product) return '';
+    return `${product.ref || ''} - ${product.name || ''}`.trim();
+  }
+
+  addPodiumSelection(): void {
+    const selectedPodium = this.podiumInputControl.value as Podium;
+    const podiumId = (selectedPodium as any)?.id;
+
+    if (!podiumId) {
+      this.notificationService.error('Please select a podium.');
+      return;
+    }
+
+    const exists = this.selectedPodiums.some((item) => item.podiumId === podiumId);
+    if (exists) {
+      this.notificationService.error('This podium is already selected.');
+      return;
+    }
+
+    this.selectedPodiums.push({
+      podiumId,
+      podiumLabel: this.displayPodium(selectedPodium),
+      grossWeightKg: this.podiumWeightControl.value,
+      notes: this.podiumNotesControl.value || ''
+    });
+
+    this.podiumInputControl.setValue(null);
+    this.podiumWeightControl.setValue(null);
+    this.podiumNotesControl.setValue('');
+  }
+
+  removePodiumSelection(index: number): void {
+    this.selectedPodiums.splice(index, 1);
+  }
+
+  addProductSelection(): void {
+    const selectedProduct = this.productInputControl.value as ProductResponse;
+    const productId = selectedProduct?.id;
+
+    if (!productId) {
+      this.notificationService.error('Please select a product.');
+      return;
+    }
+
+    const exists = this.selectedProducts.some((item) => item.productId === productId);
+    if (exists) {
+      this.notificationService.error('This product is already selected.');
+      return;
+    }
+
+    this.selectedProducts.push({
+      productId,
+      productLabel: this.displayProduct(selectedProduct),
+      notes: this.productNotesControl.value || ''
+    });
+
+    this.productInputControl.setValue(null);
+    this.productNotesControl.setValue('');
+  }
+
+  removeProductSelection(index: number): void {
+    this.selectedProducts.splice(index, 1);
+  }
+
   /**
    * Handle event selection
    */
@@ -248,6 +411,10 @@ export class TransportListComponent implements OnInit, AfterViewInit {
         eventId: (selectedEvent as any).id
       }, { emitEvent: false });
     }
+  }
+
+  onStepChange(index: number): void {
+    this.currentStepperIndex = index;
   }
 
   /**
@@ -368,15 +535,11 @@ export class TransportListComponent implements OnInit, AfterViewInit {
   onCreateTransportList(): void {
     this.isEditMode = false;
     this.selectedTransportList = null;
-    this.selectedPdfFile = null;
-    this.pdfFilePreview = null;
-    this.currentPdfUrl = null;
-    this.transportListForm.reset();
-    this.eventInputControl.setValue('');
+    this.resetCreateWizardState();
     
     this.currentDialogRef = this.dialog.open(this.modalTemplate, {
-      width: '800px',
-      maxWidth: '90vw',
+      width: '980px',
+      maxWidth: '95vw',
       disableClose: true
     });
   }
@@ -477,13 +640,30 @@ export class TransportListComponent implements OnInit, AfterViewInit {
       this.currentDialogRef.close();
       this.currentDialogRef = null;
     }
+    this.resetCreateWizardState();
+    this.isSubmitting = false;
+    this.isCreatingTransport = false;
+    this.isSavingPodiums = false;
+    this.isSavingProducts = false;
+    this.isEditMode = false;
+    this.selectedTransportList = null;
+  }
+
+  resetCreateWizardState(): void {
     this.transportListForm.reset();
     this.eventInputControl.setValue('');
     this.selectedPdfFile = null;
     this.pdfFilePreview = null;
     this.currentPdfUrl = null;
-    this.isEditMode = false;
-    this.selectedTransportList = null;
+    this.createdTransportList = null;
+    this.selectedPodiums = [];
+    this.selectedProducts = [];
+    this.podiumInputControl.setValue(null);
+    this.productInputControl.setValue(null);
+    this.podiumNotesControl.setValue('');
+    this.productNotesControl.setValue('');
+    this.podiumWeightControl.setValue(null);
+    this.currentStepperIndex = 0;
   }
 
   /**
@@ -498,6 +678,178 @@ export class TransportListComponent implements OnInit, AfterViewInit {
    */
   getSubmitButtonText(): string {
     return this.isEditMode ? 'Update Transport List' : 'Create Transport List';
+  }
+
+  submitTransportStep(stepper: MatStepper): void {
+    if (this.transportListForm.invalid) {
+      this.transportListForm.markAllAsTouched();
+      return;
+    }
+
+    if (!this.selectedPdfFile) {
+      this.notificationService.error('Please select a PDF file.');
+      return;
+    }
+
+    this.isCreatingTransport = true;
+
+    const formValue = this.transportListForm.value;
+    const formData = new FormData();
+    formData.append('name', formValue.name);
+    formData.append('eventId', formValue.eventId.toString());
+    formData.append('pdfFile', this.selectedPdfFile);
+
+    this.transportListService.transportListControllerCreateV1$Response({
+      body: formData as any
+    } as any).subscribe({
+      next: (response) => {
+        this.createdTransportList = response.body;
+        this.notificationService.success('Transport created. You can now add podiums.');
+        this.isCreatingTransport = false;
+        stepper.next();
+      },
+      error: (error) => {
+        console.error('Error creating transport list:', error);
+        this.notificationService.error('Failed to create transport list. Please try again.');
+        this.isCreatingTransport = false;
+      }
+    });
+  }
+
+  submitPodiumsStep(stepper: MatStepper): void {
+    if (!this.createdTransportList?.id) {
+      this.notificationService.error('Transport list must be created first.');
+      return;
+    }
+
+    if (!this.selectedPodiums.length) {
+      stepper.next();
+      return;
+    }
+
+    this.isSavingPodiums = true;
+
+    const requests = this.selectedPodiums.map((podium) =>
+      this.transportPodiumService.transportPodiumControllerCreateV1$Response({
+        body: {
+          transportListId: this.createdTransportList!.id,
+          podiumId: podium.podiumId,
+          grossWeightKg: podium.grossWeightKg ?? undefined,
+          notes: podium.notes || undefined
+        } as any
+      } as any)
+    );
+
+    forkJoin(requests).subscribe({
+      next: () => {
+        this.notificationService.success('Podiums added successfully.');
+        this.isSavingPodiums = false;
+        stepper.next();
+      },
+      error: (error) => {
+        console.error('Error adding podiums:', error);
+        this.notificationService.error('Failed to add podiums. Please try again.');
+        this.isSavingPodiums = false;
+      }
+    });
+  }
+
+  submitProductsStep(): void {
+    if (!this.createdTransportList?.id) {
+      this.notificationService.error('Transport list must be created first.');
+      return;
+    }
+
+    if (!this.selectedProducts.length) {
+      this.notificationService.success('Transport list created successfully.');
+      this.closeModal();
+      this.loadTransportLists();
+      return;
+    }
+
+    this.isSavingProducts = true;
+
+    const requests = this.selectedProducts.map((product) =>
+      this.transportItemService.transportItemControllerCreateV1$Response({
+        body: {
+          transportListId: this.createdTransportList!.id,
+          productId: product.productId,
+          notes: product.notes || undefined
+        } as any
+      } as any)
+    );
+
+    forkJoin(requests).subscribe({
+      next: () => {
+        this.notificationService.success('Products added and transport created successfully.');
+        this.isSavingProducts = false;
+        this.closeModal();
+        this.loadTransportLists();
+      },
+      error: (error) => {
+        console.error('Error adding products:', error);
+        this.notificationService.error('Failed to add products. Please try again.');
+        this.isSavingProducts = false;
+      }
+    });
+  }
+
+  onViewTransportDetails(transportList: GetTransportListResponse): void {
+    if (!transportList?.id) {
+      return;
+    }
+
+    forkJoin({
+      transport: this.transportListService.transportListControllerFindOneV1$Response({ id: transportList.id } as any),
+      podiums: this.transportPodiumService.transportPodiumControllerFindAllV1$Response({ transportListId: transportList.id } as any),
+      products: this.transportItemService.transportItemControllerFindAllV1$Response({ transportListId: transportList.id } as any)
+    }).subscribe({
+      next: ({ transport, podiums, products }) => {
+        const t = transport.body as any;
+        const podiumItems = (podiums.body as any[]) || [];
+        const productItems = (products.body as any[]) || [];
+
+        const podiumHtml = podiumItems.length
+          ? podiumItems.map((p) => {
+              const podium = (p as any).podium;
+              const label = podium ? this.displayPodium(podium) : `Podium ID: ${(p as any).podiumId || 'N/A'}`;
+              return `<li>${label}</li>`;
+            }).join('')
+          : '<li>No podium assigned</li>';
+
+        const productHtml = productItems.length
+          ? productItems.map((item) => {
+              const product = (item as any).product;
+              const label = product ? this.displayProduct(product) : `Product ID: ${(item as any).productId || 'N/A'}`;
+              return `<li>${label}</li>`;
+            }).join('')
+          : '<li>No product assigned</li>';
+
+        Swal.fire({
+          title: `Transport #${t.id}`,
+          width: '900px',
+          confirmButtonColor: '#556ee6',
+          html: `
+            <div class="text-start">
+              <h6 class="mb-2">Transport information</h6>
+              <p class="mb-1"><strong>Name:</strong> ${t.name || 'N/A'}</p>
+              <p class="mb-1"><strong>Status:</strong> ${t.status || 'N/A'}</p>
+              <p class="mb-3"><strong>Event ID:</strong> ${t.eventId || 'N/A'}</p>
+
+              <h6 class="mb-2">Podiums</h6>
+              <ul class="mb-3">${podiumHtml}</ul>
+
+              <h6 class="mb-2">Products</h6>
+              <ul class="mb-0">${productHtml}</ul>
+            </div>
+          `
+        });
+      },
+      error: (error) => {
+        console.error('Error loading transport details:', error);
+        this.notificationService.error('Failed to load transport details. Please try again.');
+      }
+    });
   }
 
   /**

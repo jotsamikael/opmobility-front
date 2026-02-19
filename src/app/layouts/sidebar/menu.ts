@@ -73,14 +73,8 @@ export const MENU: MenuItem[] = [
         subItems: [
             {
                 id: 13,
-                label: 'Transport Products',
-                link: 'transport-product',
-                parentId: 12
-            },
-            {
-                id: 14,
-                label: 'Transport Podiums',
-                link: 'transport-podium',
+                label: 'Transport Lists',
+                link: 'transport-list',
                 parentId: 12
             }
            ]
