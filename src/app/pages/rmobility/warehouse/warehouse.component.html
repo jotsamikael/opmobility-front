@@ -256,13 +256,13 @@
                     <!-- Town -->
                     <div class="col-md-12">
                       <mat-form-field appearance="outline" class="w-100">
-                        <mat-label>Town</mat-label>
+                        <mat-label>Town (worldwide)</mat-label>
                         <input 
                           type="text"
                           matInput
                           [formControl]="townInputControl"
                           [matAutocomplete]="auto"
-                          placeholder="Search and select a town"
+                          placeholder="Type to search any city in the world"
                           (blur)="onTownInputBlur()">
                         <mat-icon matPrefix class="me-2">location_city</mat-icon>
                         <mat-autocomplete 

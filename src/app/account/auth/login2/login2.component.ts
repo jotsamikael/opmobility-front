@@ -20,6 +20,7 @@ export class Login2Component implements OnInit {
   isLoading = false;
   submitted = false;
   returnUrl: string;
+  showPassword = false;
 
   // set the current year
   year: number = new Date().getFullYear();
@@ -57,6 +58,10 @@ export class Login2Component implements OnInit {
 
   // convenience getter for easy access to form fields
   get f() { return this.loginForm.controls; }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
 
   /**
    * Login function

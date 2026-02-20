@@ -71,7 +71,7 @@ export class TransportDetailComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/transport-list']);
+    this.router.navigate(['/backend/transport-list']);
   }
 
   displayPodium(podium: Podium | null): string {

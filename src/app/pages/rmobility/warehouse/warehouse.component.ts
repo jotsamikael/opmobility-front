@@ -4,7 +4,7 @@ import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { debounceTime, distinctUntilChanged, startWith, map, Observable } from 'rxjs';
+import { debounceTime, distinctUntilChanged, startWith, map, Observable, switchMap, of, catchError } from 'rxjs';
 import { GlobalFormBuilder } from 'src/app/core/globalFormBuilder';
 import { NotificationService } from 'src/app/core/services/notification.service';
 import { CommonService } from 'src/app/core/services/common.service';
@@ -156,33 +156,9 @@ export class WarehouseComponent implements OnInit, AfterViewInit {
    * Load towns data from API
    */
   loadTowns(): void {
-    const requestParams = {
-      page: 1,
-      limit: 1000 as number
-    };
-    
-    // Use $Response to get the full response
-    this.townService.townControllerFindAllV1$Response(requestParams).subscribe({
-      next: (response: any) => {
-        console.log("towns", response.body);
-        // Handle response structure - check both body and direct response
-        const data = response.body || response;
-        if (data && data.items) {
-          this.townOptions = data.items;
-        } else if (Array.isArray(data)) {
-          this.townOptions = data;
-        } else if (data && typeof data === 'object') {
-          // If it's a paginated response without items property, try to extract array
-          const keys = Object.keys(data);
-          const arrayKey = keys.find(key => Array.isArray(data[key]));
-          if (arrayKey) {
-            this.townOptions = data[arrayKey];
-          }
-        } else {
-          this.townOptions = [];
-        }
-        // Re-setup autocomplete after towns are loaded
-        this.setupTownAutocomplete();
+    this.fetchTowns('').subscribe({
+      next: (towns) => {
+        this.townOptions = towns;
       },
       error: (error) => {
         console.error('Error loading towns:', error);
@@ -197,9 +173,53 @@ export class WarehouseComponent implements OnInit, AfterViewInit {
   setupTownAutocomplete(): void {
     this.filteredTowns = this.townInputControl.valueChanges.pipe(
       startWith(''),
-      map(value => {
-        const name = typeof value === 'string' ? value : value?.name || '';
-        return name ? this._filterTowns(name) : this.townOptions.slice();
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(value => {
+        if (value && typeof value === 'object') {
+          return of(this.townOptions);
+        }
+
+        const searchTerm = typeof value === 'string' ? value.trim() : '';
+        return this.fetchTowns(searchTerm);
+      }),
+      map((towns) => {
+        this.townOptions = towns;
+        return towns;
+      })
+    );
+  }
+
+  private fetchTowns(name: string): Observable<GetTownResponseDto[]> {
+    return this.townService.townControllerFindAllV1$Response({
+      page: 1,
+      limit: 100,
+      name: name || undefined
+    } as any).pipe(
+      map((response: any) => {
+        const data = response.body || response;
+
+        if (data && data.items) {
+          return data.items as GetTownResponseDto[];
+        }
+
+        if (Array.isArray(data)) {
+          return data as GetTownResponseDto[];
+        }
+
+        if (data && typeof data === 'object') {
+          const keys = Object.keys(data);
+          const arrayKey = keys.find((key) => Array.isArray(data[key]));
+          if (arrayKey) {
+            return data[arrayKey] as GetTownResponseDto[];
+          }
+        }
+
+        return [];
+      }),
+      catchError((error) => {
+        console.error('Error searching towns:', error);
+        return of([]);
       })
     );
   }

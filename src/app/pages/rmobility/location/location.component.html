@@ -314,9 +314,6 @@
                         <mat-label>Aisle</mat-label>
                         <input matInput formControlName="aisle" placeholder="Enter aisle">
                         <mat-icon matPrefix class="me-2">straighten</mat-icon>
-                        <mat-error *ngIf="locationForm.get('aisle')?.hasError('required')">
-                          Aisle is required
-                        </mat-error>
                         <mat-error *ngIf="locationForm.get('aisle')?.hasError('maxlength')">
                           Aisle cannot exceed 20 characters
                         </mat-error>
@@ -329,9 +326,6 @@
                         <mat-label>Level Number</mat-label>
                         <input matInput type="number" formControlName="levelNo" placeholder="Enter level number">
                         <mat-icon matPrefix class="me-2">layers</mat-icon>
-                        <mat-error *ngIf="locationForm.get('levelNo')?.hasError('required')">
-                          Level number is required
-                        </mat-error>
                         <mat-error *ngIf="locationForm.get('levelNo')?.hasError('min')">
                           Level number must be at least 1
                         </mat-error>
@@ -346,9 +340,6 @@
                         <mat-label>Position Label</mat-label>
                         <input matInput formControlName="positionLabel" placeholder="Enter position label">
                         <mat-icon matPrefix class="me-2">label</mat-icon>
-                        <mat-error *ngIf="locationForm.get('positionLabel')?.hasError('required')">
-                          Position label is required
-                        </mat-error>
                         <mat-error *ngIf="locationForm.get('positionLabel')?.hasError('maxlength')">
                           Position label cannot exceed 20 characters
                         </mat-error>

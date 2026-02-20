@@ -817,7 +817,7 @@ export class TransportListComponent implements OnInit, AfterViewInit {
     if (!transportList?.id) {
       return;
     }
-    this.router.navigate(['/transport-list', transportList.id]);
+    this.router.navigate(['/backend/transport-list', transportList.id]);
   }
 
   /**

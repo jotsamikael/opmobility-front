@@ -49,9 +49,9 @@ export class GlobalFormBuilder {
   locationForm(){
     return this.fb.group({
       warehouseId: [null, Validators.required],
-      aisle: ['', [Validators.required, Validators.maxLength(20)]],
-      levelNo: [null, [Validators.required, Validators.min(1)]],
-      positionLabel: ['', [Validators.required, Validators.maxLength(20)]],
+      aisle: ['', [Validators.maxLength(20)]],
+      levelNo: [null, [Validators.min(1)]],
+      positionLabel: ['', [Validators.maxLength(20)]],
       notes: ['']
     });
   }

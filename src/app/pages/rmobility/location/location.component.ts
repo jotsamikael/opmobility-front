@@ -599,11 +599,20 @@ export class LocationComponent implements OnInit, AfterViewInit {
     this.commonService.disableForm(this.locationForm);
     
     const formData: any = {
-      warehouseId: this.locationForm.value.warehouseId,
-      aisle: this.locationForm.value.aisle,
-      levelNo: this.locationForm.value.levelNo,
-      positionLabel: this.locationForm.value.positionLabel
+      warehouseId: this.locationForm.value.warehouseId
     };
+
+    if (this.locationForm.value.aisle) {
+      formData.aisle = this.locationForm.value.aisle;
+    }
+
+    if (this.locationForm.value.levelNo !== null && this.locationForm.value.levelNo !== undefined && this.locationForm.value.levelNo !== '') {
+      formData.levelNo = this.locationForm.value.levelNo;
+    }
+
+    if (this.locationForm.value.positionLabel) {
+      formData.positionLabel = this.locationForm.value.positionLabel;
+    }
     
     if (this.locationForm.value.notes) {
       formData.notes = this.locationForm.value.notes;
