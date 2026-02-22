@@ -723,7 +723,7 @@ export class TransportListComponent implements OnInit, AfterViewInit {
     } as any).subscribe({
       next: (response) => {
         this.createdTransportList = response.body;
-        this.notificationService.success('Transport created. You can now add podiums.');
+        this.notificationService.success('Transport created. You can now add products.');
         this.isCreatingTransport = false;
         stepper.next();
       },
@@ -735,14 +735,16 @@ export class TransportListComponent implements OnInit, AfterViewInit {
     });
   }
 
-  submitPodiumsStep(stepper: MatStepper): void {
+  submitPodiumsStep(): void {
     if (!this.createdTransportList?.id) {
       this.notificationService.error('Transport list must be created first.');
       return;
     }
 
     if (!this.selectedPodiums.length) {
-      stepper.next();
+      this.notificationService.success('Transport list created successfully.');
+      this.closeModal();
+      this.loadTransportLists();
       return;
     }
 
@@ -761,9 +763,10 @@ export class TransportListComponent implements OnInit, AfterViewInit {
 
     forkJoin(requests).subscribe({
       next: () => {
-        this.notificationService.success('Podiums added successfully.');
+        this.notificationService.success('Podiums added and transport created successfully.');
         this.isSavingPodiums = false;
-        stepper.next();
+        this.closeModal();
+        this.loadTransportLists();
       },
       error: (error) => {
         console.error('Error adding podiums:', error);
@@ -773,16 +776,14 @@ export class TransportListComponent implements OnInit, AfterViewInit {
     });
   }
 
-  submitProductsStep(): void {
+  submitProductsStep(stepper: MatStepper): void {
     if (!this.createdTransportList?.id) {
       this.notificationService.error('Transport list must be created first.');
       return;
     }
 
     if (!this.selectedProducts.length) {
-      this.notificationService.success('Transport list created successfully.');
-      this.closeModal();
-      this.loadTransportLists();
+      stepper.next();
       return;
     }
 
@@ -800,10 +801,9 @@ export class TransportListComponent implements OnInit, AfterViewInit {
 
     forkJoin(requests).subscribe({
       next: () => {
-        this.notificationService.success('Products added and transport created successfully.');
+        this.notificationService.success('Products added successfully.');
         this.isSavingProducts = false;
-        this.closeModal();
-        this.loadTransportLists();
+        stepper.next();
       },
       error: (error) => {
         console.error('Error adding products:', error);

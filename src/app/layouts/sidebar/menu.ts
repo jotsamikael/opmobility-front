@@ -28,8 +28,8 @@ export const MENU: MenuItem[] = [
     },
     {
         id: 4,
-        label: 'Transport List History',
-        icon: 'bxs-book',
+        label: 'Transport',
+        icon: 'bxs-truck',
         link: 'transport-list',
         roles: ['ADMIN','LOGISTIC_MANAGER','ALPHA_STORE_MANAGER']
 
@@ -66,19 +66,6 @@ export const MENU: MenuItem[] = [
         roles: ['ADMIN','ALPHA_STORE_MANAGER']
 
     },
-    {
-        id: 4,
-        label: 'Transport',
-        icon: 'bxs-truck',
-        subItems: [
-            {
-                id: 13,
-                label: 'Transport Lists',
-                link: 'transport-list',
-                parentId: 12
-            }
-           ]
-        },
     {
         id: 19,
         label: 'Repairs',
