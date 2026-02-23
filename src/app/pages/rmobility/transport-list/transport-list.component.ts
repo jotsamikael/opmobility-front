@@ -338,9 +338,25 @@ export class TransportListComponent implements OnInit, AfterViewInit {
     return `${p.ref || ''} - ${p.name || ''}`.trim();
   }
 
+  isPodiumInUse(podium: Podium | null): boolean {
+    if (!podium) {
+      return false;
+    }
+
+    return (podium as any).state === 'IN_USE';
+  }
+
   displayProduct(product: ProductResponse | null): string {
     if (!product) return '';
     return `${product.ref || ''} - ${product.name || ''}`.trim();
+  }
+
+  isProductAtEvent(product: ProductResponse | null): boolean {
+    if (!product) {
+      return false;
+    }
+
+    return (product as any).status === 'AtEvent';
   }
 
   addPodiumSelection(): void {
@@ -349,6 +365,11 @@ export class TransportListComponent implements OnInit, AfterViewInit {
 
     if (!podiumId) {
       this.notificationService.error('Please select a podium.');
+      return;
+    }
+
+    if (this.isPodiumInUse(selectedPodium)) {
+      this.notificationService.error('This podium is already in use and cannot be selected.');
       return;
     }
 
@@ -380,6 +401,11 @@ export class TransportListComponent implements OnInit, AfterViewInit {
 
     if (!productId) {
       this.notificationService.error('Please select a product.');
+      return;
+    }
+
+    if (this.isProductAtEvent(selectedProduct)) {
+      this.notificationService.error('This product is already at event and cannot be selected.');
       return;
     }
 

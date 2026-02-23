@@ -121,8 +121,14 @@
 
           <!-- Table -->
           <div class="table-responsive" *ngIf="!isLoading">
+            <div class="d-flex justify-content-end mb-3">
+              <button mat-raised-button color="primary" (click)="transportListExporter.exportTable('xlsx', { fileName: 'transport-lists-page-' + currentPage })" [disabled]="!dataSource.data.length">
+                <mat-icon>file_download</mat-icon>
+                Export Excel
+              </button>
+            </div>
             <div class="mat-elevation-z8 rounded overflow-hidden">
-              <table mat-table [dataSource]="dataSource" matSort (matSortChange)="onSortChange($event)" class="w-100">
+              <table mat-table matTableExporter #transportListExporter="matTableExporter" [hiddenColumns]="[8, 9]" [dataSource]="dataSource" matSort (matSortChange)="onSortChange($event)" class="w-100">
 
                 <!-- ID Column -->
                 <ng-container matColumnDef="id">
@@ -336,8 +342,9 @@
                     <mat-label>Product</mat-label>
                     <input matInput [formControl]="productInputControl" [matAutocomplete]="productAuto" placeholder="Search product">
                     <mat-autocomplete #productAuto="matAutocomplete" [displayWith]="displayProduct">
-                      <mat-option *ngFor="let product of filteredProducts | async" [value]="product">
+                      <mat-option *ngFor="let product of filteredProducts | async" [value]="product" [disabled]="isProductAtEvent(product)">
                         {{ displayProduct(product) }}
+                        <span *ngIf="isProductAtEvent(product)" class="text-muted ms-2">(AtEvent)</span>
                       </mat-option>
                     </mat-autocomplete>
                   </mat-form-field>
@@ -388,8 +395,9 @@
                     <mat-label>Podium</mat-label>
                     <input matInput [formControl]="podiumInputControl" [matAutocomplete]="podiumAuto" placeholder="Search podium">
                     <mat-autocomplete #podiumAuto="matAutocomplete" [displayWith]="displayPodium">
-                      <mat-option *ngFor="let podium of filteredPodiums | async" [value]="podium">
+                      <mat-option *ngFor="let podium of filteredPodiums | async" [value]="podium" [disabled]="isPodiumInUse(podium)">
                         {{ displayPodium(podium) }}
+                        <span *ngIf="isPodiumInUse(podium)" class="text-muted ms-2">(IN_USE)</span>
                       </mat-option>
                     </mat-autocomplete>
                   </mat-form-field>
