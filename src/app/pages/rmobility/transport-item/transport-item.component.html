@@ -274,8 +274,9 @@
                         <mat-label>Product</mat-label>
                         <input matInput [formControl]="productInputControl" [matAutocomplete]="productAuto" placeholder="Search product" (blur)="onProductInputBlur()">
                         <mat-autocomplete #productAuto="matAutocomplete" [displayWith]="displayProduct" (opened)="onAutocompleteOpened()" (closed)="onAutocompleteClosed()" (optionSelected)="onProductSelected($event)">
-                          <mat-option *ngFor="let product of filteredProducts | async" [value]="product">
+                          <mat-option *ngFor="let product of filteredProducts | async" [value]="product" [disabled]="!isProductTransportEligible(product)">
                             {{displayProduct(product)}}
+                            <span *ngIf="getProductTransportBlockReason(product)" class="text-muted ms-2">({{ getProductTransportBlockReason(product) }})</span>
                           </mat-option>
                         </mat-autocomplete>
                         <mat-icon matPrefix class="me-2">inventory</mat-icon>

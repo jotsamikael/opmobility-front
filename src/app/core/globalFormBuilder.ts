@@ -103,7 +103,7 @@ export class GlobalFormBuilder {
       providerId: [null, Validators.required],
       productId: [null],
       type: ['', Validators.required],
-      material: ['', [Validators.required, Validators.maxLength(100)]],
+      material: ['', [Validators.maxLength(100)]],
       lengthMm: [null, [Validators.required, Validators.min(1)]],
       widthMm: [null, [Validators.required, Validators.min(1)]],
       heightMm: [null, [Validators.required, Validators.min(1)]],
@@ -195,7 +195,6 @@ export class GlobalFormBuilder {
     return this.fb.group({
       transportListId: [null, Validators.required],
       podiumId: [null, Validators.required],
-      grossWeightKg: [null],
       notes: ['', [Validators.maxLength(1000)]]
     });
   }

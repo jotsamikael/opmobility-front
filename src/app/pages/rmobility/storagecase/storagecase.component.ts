@@ -802,7 +802,9 @@ export class StoragecaseComponent implements OnInit, AfterViewInit {
         formDataToSend.append('productId', this.storageCaseForm.value.productId.toString());
       }
       formDataToSend.append('type', this.storageCaseForm.value.type);
-      formDataToSend.append('material', this.storageCaseForm.value.material);
+      if (this.storageCaseForm.value.material) {
+        formDataToSend.append('material', this.storageCaseForm.value.material);
+      }
       formDataToSend.append('lengthMm', this.storageCaseForm.value.lengthMm.toString());
       formDataToSend.append('widthMm', this.storageCaseForm.value.widthMm.toString());
       formDataToSend.append('heightMm', this.storageCaseForm.value.heightMm.toString());
@@ -847,7 +849,9 @@ export class StoragecaseComponent implements OnInit, AfterViewInit {
         formDataToSend.append('productId', this.storageCaseForm.value.productId.toString());
       }
       formDataToSend.append('type', this.storageCaseForm.value.type);
-      formDataToSend.append('material', this.storageCaseForm.value.material);
+      if (this.storageCaseForm.value.material) {
+        formDataToSend.append('material', this.storageCaseForm.value.material);
+      }
       formDataToSend.append('lengthMm', this.storageCaseForm.value.lengthMm.toString());
       formDataToSend.append('widthMm', this.storageCaseForm.value.widthMm.toString());
       formDataToSend.append('heightMm', this.storageCaseForm.value.heightMm.toString());

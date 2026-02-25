@@ -311,6 +311,61 @@ export class TransportItemComponent implements OnInit, AfterViewInit {
     return `${product.ref || ''} - ${product.name || ''}`.trim();
   }
 
+  isProductTransportEligible(product: ProductResponse | null): boolean {
+    return this.getProductTransportBlockReason(product) === null;
+  }
+
+  getProductTransportBlockReason(product: ProductResponse | null): string | null {
+    if (!product) {
+      return null;
+    }
+
+    const productStatus = this.normalizeLifecycleStatus((product as any).status);
+    if (productStatus !== 'AVAILABLE') {
+      return `Product status: ${(product as any).status || 'N/A'}`;
+    }
+
+    const storageCaseStatusRaw = (product as any).storageCaseStatus;
+    if (storageCaseStatusRaw) {
+      const storageCaseStatus = this.normalizeLifecycleStatus(storageCaseStatusRaw);
+      if (storageCaseStatus !== 'AVAILABLE') {
+        return `Storage case status: ${storageCaseStatusRaw}`;
+      }
+    }
+
+    return null;
+  }
+
+  private normalizeLifecycleStatus(status: string | null | undefined): string {
+    if (!status) {
+      return '';
+    }
+
+    const normalized = status
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, '_');
+
+    switch (normalized) {
+      case 'AVAILABLE':
+        return 'AVAILABLE';
+      case 'AT_EVENT':
+      case 'ATEVENT':
+      case 'IN_USE':
+      case 'INUSE':
+        return 'AT_EVENT';
+      case 'INSPECTING':
+        return 'INSPECTING';
+      case 'UNDER_REPAIR':
+      case 'UNDERREPAIR':
+        return 'UNDER_REPAIR';
+      case 'RETIRED':
+        return 'RETIRED';
+      default:
+        return normalized;
+    }
+  }
+
   /**
    * Display storage case in autocomplete
    */
@@ -377,6 +432,13 @@ export class TransportItemComponent implements OnInit, AfterViewInit {
    */
   onProductSelected(event: any): void {
     const product = event.option.value as ProductResponse;
+    const blockReason = this.getProductTransportBlockReason(product);
+    if (blockReason) {
+      this.notificationService.error(`This product cannot be selected (${blockReason}).`);
+      this.transportItemForm.patchValue({ productId: null });
+      this.productInputControl.setValue('');
+      return;
+    }
     this.transportItemForm.patchValue({ productId: product.id });
     this.productInputControl.setValue(product);
   }
@@ -437,7 +499,11 @@ export class TransportItemComponent implements OnInit, AfterViewInit {
       const matchingProduct = this.productOptions.find(p => 
         this.displayProduct(p).toLowerCase() === value.toLowerCase()
       );
-      if (!matchingProduct) {
+      if (!matchingProduct || !this.isProductTransportEligible(matchingProduct)) {
+        if (matchingProduct && !this.isProductTransportEligible(matchingProduct)) {
+          const blockReason = this.getProductTransportBlockReason(matchingProduct);
+          this.notificationService.error(`This product cannot be selected (${blockReason}).`);
+        }
         this.productInputControl.setValue('', { emitEvent: false });
         this.transportItemForm.patchValue({ productId: null }, { emitEvent: false });
       }

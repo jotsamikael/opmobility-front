@@ -429,12 +429,9 @@
                     <!-- Material -->
                     <div class="col-md-6">
                       <mat-form-field appearance="outline" class="w-100">
-                        <mat-label>Material</mat-label>
+                        <mat-label>Material (Optional)</mat-label>
                         <input matInput formControlName="material" placeholder="Enter material">
                         <mat-icon matPrefix class="me-2">build</mat-icon>
-                        <mat-error *ngIf="storageCaseForm.get('material')?.hasError('required')">
-                          Material is required
-                        </mat-error>
                         <mat-error *ngIf="storageCaseForm.get('material')?.hasError('maxlength')">
                           Material cannot exceed 100 characters
                         </mat-error>

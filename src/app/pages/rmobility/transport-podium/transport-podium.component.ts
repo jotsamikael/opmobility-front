@@ -28,7 +28,7 @@ export class TransportPodiumComponent implements OnInit, AfterViewInit {
   breadCrumbItems: Array<{}>;
   
   // Table properties
-  displayedColumns: string[] = ['id', 'transportList', 'podium', 'grossWeightKg', 'returnedAt', 'actions'];
+  displayedColumns: string[] = ['id', 'transportList', 'podium', 'returnedAt', 'actions'];
   dataSource: MatTableDataSource<TransportPodium> = new MatTableDataSource<TransportPodium>([]);
  
   // Pagination properties
@@ -426,10 +426,6 @@ export class TransportPodiumComponent implements OnInit, AfterViewInit {
           <span>${r.podium ? this.displayPodium(r.podium) : (r.podiumId ? `Podium ID: ${r.podiumId}` : 'N/A')}</span>
         </div>
         <div class="detail-row">
-          <strong>Gross Weight (kg):</strong> 
-          <span>${r.grossWeightKg != null ? r.grossWeightKg : 'N/A'}</span>
-        </div>
-        <div class="detail-row">
           <strong>Returned At:</strong> 
           <span>${r.returnedAt ? (new Date(r.returnedAt).toLocaleString()) : 'Not returned'}</span>
         </div>
@@ -487,7 +483,6 @@ export class TransportPodiumComponent implements OnInit, AfterViewInit {
     this.transportPodiumForm.patchValue({
       transportListId: r.transportListId || null,
       podiumId: r.podiumId || null,
-      grossWeightKg: r.grossWeightKg || null,
       notes: r.notes || ''
     }, { emitEvent: false });
 

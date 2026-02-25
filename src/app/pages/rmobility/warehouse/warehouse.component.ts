@@ -193,7 +193,7 @@ export class WarehouseComponent implements OnInit, AfterViewInit {
   private fetchTowns(name: string): Observable<GetTownResponseDto[]> {
     return this.townService.townControllerFindAllV1$Response({
       page: 1,
-      limit: 100,
+      limit: 2000,
       name: name || undefined
     } as any).pipe(
       map((response: any) => {

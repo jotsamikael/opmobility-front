@@ -133,14 +133,6 @@
                   </td>
                 </ng-container>
 
-                <!-- Gross Weight Column -->
-                <ng-container matColumnDef="grossWeightKg">
-                  <th mat-header-cell *matHeaderCellDef> Gross Weight (kg) </th>
-                  <td mat-cell *matCellDef="let row"> 
-                    <span>{{$any(row).grossWeightKg != null ? $any(row).grossWeightKg : 'N/A'}}</span>
-                  </td>
-                </ng-container>
-
                 <!-- Returned At Column -->
                 <ng-container matColumnDef="returnedAt">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header="returnedAt"> Returned At </th>
@@ -267,17 +259,6 @@
                         <mat-error *ngIf="transportPodiumForm.get('podiumId')?.hasError('required')">
                           Podium is required
                         </mat-error>
-                      </mat-form-field>
-                    </div>
-                  </div>
-  
-                  <div class="row">
-                    <!-- Gross Weight -->
-                    <div class="col-md-6">
-                      <mat-form-field appearance="outline" class="w-100">
-                        <mat-label>Gross Weight (kg) - Optional</mat-label>
-                        <input matInput type="number" formControlName="grossWeightKg" placeholder="Enter gross weight" step="0.001" min="0">
-                        <mat-icon matPrefix class="me-2">scale</mat-icon>
                       </mat-form-field>
                     </div>
                   </div>
