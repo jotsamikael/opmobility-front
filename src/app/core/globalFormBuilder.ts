@@ -88,9 +88,10 @@ export class GlobalFormBuilder {
       widthMm: [null, [Validators.required, Validators.min(1)]],
       heightMm: [null, [Validators.required, Validators.min(1)]],
       weightKg: [null, [Validators.required, Validators.min(0)]],
+      price: [null, [Validators.min(0)]],
       entryDate: ['', Validators.required],
       description: ['', [Validators.required, Validators.maxLength(500)]],
-      imageFile: [null],
+      imageFiles: [null],
       specSheetFile: [null]
     });
   }

@@ -243,6 +243,14 @@
                   </td>
                 </ng-container>
 
+                <!-- Price Column -->
+                <ng-container matColumnDef="price">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header="price"> Price </th>
+                  <td mat-cell *matCellDef="let row"> 
+                    <span>{{row.price != null ? (row.price + ' EUR') : 'N/A'}}</span>
+                  </td>
+                </ng-container>
+
                 <!-- Actions Column -->
                 <ng-container matColumnDef="actions">
                   <th mat-header-cell *matHeaderCellDef> Actions </th>
@@ -492,6 +500,18 @@
                         </mat-error>
                       </mat-form-field>
                     </div>
+
+                    <!-- Price -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Price (EUR) - Optional</mat-label>
+                        <input matInput type="number" step="0.01" min="0" formControlName="price" placeholder="Enter price">
+                        <mat-icon matPrefix class="me-2">payments</mat-icon>
+                        <mat-error *ngIf="productForm.get('price')?.hasError('min')">
+                          Price must be greater than or equal to 0
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
                   </div>
   
                   <div class="row">
@@ -518,16 +538,18 @@
                       <div class="mb-3">
                         <label class="form-label d-flex align-items-center">
                           <mat-icon class="me-2">image</mat-icon>
-                          Product Image (JPEG, PNG, WebP - Max 5MB)
+                          Product Images (JPEG, PNG, WebP - Max 5MB each)
                         </label>
-                        <input type="file" class="form-control" accept="image/jpeg,image/jpg,image/png,image/webp" (change)="onImageFileSelected($event)">
-                        <div *ngIf="imagePreview" class="mt-2">
-                          <img [src]="imagePreview" alt="Product Image Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
-                          <button mat-icon-button color="warn" (click)="removeImageFile()" class="ms-2">
-                            <mat-icon>delete</mat-icon>
-                          </button>
+                        <input type="file" class="form-control" accept="image/jpeg,image/jpg,image/png,image/webp" multiple (change)="onImageFileSelected($event)">
+                        <div *ngIf="imagePreviews.length" class="mt-2 d-flex flex-wrap gap-2">
+                          <div *ngFor="let preview of imagePreviews; let i = index" class="position-relative">
+                            <img [src]="preview" alt="Product Image Preview" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid #eee;">
+                            <button type="button" mat-mini-fab color="warn" (click)="removeImageFile(i)" style="position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; min-height: 24px; line-height: 24px;">
+                              <mat-icon style="font-size: 14px; width: 14px; height: 14px;">close</mat-icon>
+                            </button>
+                          </div>
                         </div>
-                        <small class="form-text text-muted">Optional: Upload a product image</small>
+                        <small class="form-text text-muted">Optional: Upload one or more product images</small>
                       </div>
                     </div>
                     

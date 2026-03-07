@@ -105,6 +105,19 @@
                     <mat-icon matSuffix>business</mat-icon>
                   </mat-form-field>
                 </div>
+
+                <div class="col-md-3">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Filter by Product</mat-label>
+                    <input matInput [formControl]="productFilterInputControl" [matAutocomplete]="productFilterAuto" placeholder="Search product">
+                    <mat-autocomplete #productFilterAuto="matAutocomplete" [displayWith]="displayProduct" (opened)="onFilterAutocompleteOpened()" (closed)="onFilterAutocompleteClosed()" (optionSelected)="onFilterProductSelected($event)">
+                      <mat-option *ngFor="let product of filteredProductsForFilter | async" [value]="product">
+                        {{displayProduct(product)}}
+                      </mat-option>
+                    </mat-autocomplete>
+                    <mat-icon matSuffix>inventory</mat-icon>
+                  </mat-form-field>
+                </div>
               </div>
               
               <!-- Filter Actions -->

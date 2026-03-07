@@ -25,9 +25,14 @@ export interface UpdateProductDto {
   heightMm?: number;
 
   /**
-   * Product image file for the request
+   * Product image file for backward compatibility
    */
   imageFile?: Blob;
+
+  /**
+   * Product image files for the request (multiple allowed)
+   */
+  imageFiles?: Array<Blob>;
 
   /**
    * lengthMm
@@ -48,6 +53,11 @@ export interface UpdateProductDto {
    * Provider id
    */
   providerId?: number;
+
+  /**
+   * price
+   */
+  price?: number;
 
   /**
    * Ref of the product

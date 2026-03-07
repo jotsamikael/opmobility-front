@@ -18,9 +18,11 @@ export interface ProductResponse {
   lengthMm: number;
   location: LocationResponse;
   name: string;
+  price?: number;
   provider: ProviderResponse;
   ref: string;
   specFile?: ProductFileResponse;
+  storageCaseStatus?: string;
   status: string;
   updatedAt: string;
   weightKg: number;

@@ -25,9 +25,14 @@ export interface CreateProductDto {
   heightMm: number;
 
   /**
-   * Product image file for the request
+   * Product image file for backward compatibility
    */
-  imageFile: Blob;
+  imageFile?: Blob;
+
+  /**
+   * Product image files for the request (multiple allowed)
+   */
+  imageFiles?: Array<Blob>;
 
   /**
    * lengthMm
@@ -50,6 +55,11 @@ export interface CreateProductDto {
   providerId?: number;
 
   /**
+   * price
+   */
+  price?: number;
+
+  /**
    * ref
    */
   ref: string;
@@ -57,7 +67,7 @@ export interface CreateProductDto {
   /**
    * Product specification sheet file (PDF)
    */
-  specSheetFile: Blob;
+  specSheetFile?: Blob;
 
   /**
    * status

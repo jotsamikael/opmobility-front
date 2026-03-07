@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.gohappygo.fr/api',
-  baseUrl: 'https://api.gohappygo.fr',
+  apiUrl: 'https://opmobility.pariemalin.com/api',
+  baseUrl: 'https://opmobility.pariemalin.com',
 };

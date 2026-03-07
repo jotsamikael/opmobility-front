@@ -53,6 +53,16 @@ export interface StorageCaseControllerGetAllStorageCasesV1$Params {
   locationId?: number;
 
 /**
+ * The provider id of the storage case
+ */
+  providerId?: number;
+
+/**
+ * The linked product id of the storage case
+ */
+  productId?: number;
+
+/**
  * The observations of the storage case
  */
   observations?: string;
@@ -74,6 +84,8 @@ export function storageCaseControllerGetAllStorageCasesV1(http: HttpClient, root
     rb.query('heightMm', params.heightMm, {});
     rb.query('status', params.status, {});
     rb.query('locationId', params.locationId, {});
+    rb.query('providerId', params.providerId, {});
+    rb.query('productId', params.productId, {});
     rb.query('observations', params.observations, {});
     rb.query('orderBy', params.orderBy, {});
   }

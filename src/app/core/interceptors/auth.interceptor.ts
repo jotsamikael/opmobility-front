@@ -55,6 +55,11 @@ export class AuthInterceptor implements HttpInterceptor {
   private shouldHandle401Error(url: string): boolean {
     // List of endpoints that don't require authentication
     const publicEndpoints = [
+      '/api/v1/auth/login',
+      '/api/v1/auth/register',
+      '/api/v1/auth/refresh-token',
+      '/api/v1/auth/verify-phone',
+      '/api/v1/auth/upload-verification',
       '/api/auth/login',
       '/api/auth/register',
       '/api/auth/refresh-token',

@@ -44,7 +44,7 @@ export class ProductComponent implements OnInit, AfterViewInit {
   breadCrumbItems: Array<{}>;
   
   // Table properties
-  displayedColumns: string[] = ['image', 'ref', 'name', 'category', 'location', 'status', 'dimensions', 'weight', 'actions'];
+  displayedColumns: string[] = ['image', 'ref', 'name', 'category', 'location', 'status', 'dimensions', 'weight', 'price', 'actions'];
   dataSource: MatTableDataSource<ProductResponse> = new MatTableDataSource<ProductResponse>([]);
  
   // Pagination properties
@@ -107,8 +107,8 @@ export class ProductComponent implements OnInit, AfterViewInit {
   isEditMode = false;
   
   // File upload properties
-  selectedImageFile: File | null = null;
-  imagePreview: string | null = null;
+  selectedImageFiles: File[] = [];
+  imagePreviews: string[] = [];
   selectedSpecSheetFile: File | null = null;
   specSheetFileName: string | null = null;
   specSheetFileUrl: string | null = null;
@@ -546,40 +546,50 @@ export class ProductComponent implements OnInit, AfterViewInit {
    * Handle image file selection
    */
   onImageFileSelected(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      // Validate file type
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const files = Array.from(event.target.files || []) as File[];
+    if (files.length === 0) {
+      return;
+    }
+
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
+    for (const file of files) {
       if (!validTypes.includes(file.type)) {
         this.notificationService.error('Invalid file type. Only JPEG, PNG, and WebP images are allowed.');
-        return;
+        continue;
       }
-      
-      // Validate file size (max 5MB)
+
       if (file.size > 5 * 1024 * 1024) {
         this.notificationService.error('Image file size must be less than 5MB.');
-        return;
+        continue;
       }
-      
-      this.selectedImageFile = file;
-      this.productForm.patchValue({ imageFile: file });
-      
-      // Create preview
+
+      this.selectedImageFiles.push(file);
+
       const reader = new FileReader();
       reader.onload = (e: any) => {
-        this.imagePreview = e.target.result;
+        this.imagePreviews.push(e.target.result);
       };
       reader.readAsDataURL(file);
     }
+
+    this.productForm.patchValue({ imageFiles: this.selectedImageFiles });
   }
 
   /**
    * Remove image file
    */
-  removeImageFile(): void {
-    this.selectedImageFile = null;
-    this.imagePreview = null;
-    this.productForm.patchValue({ imageFile: null });
+  removeImageFile(index?: number): void {
+    if (index === undefined) {
+      this.selectedImageFiles = [];
+      this.imagePreviews = [];
+      this.productForm.patchValue({ imageFiles: null });
+      return;
+    }
+
+    this.selectedImageFiles.splice(index, 1);
+    this.imagePreviews.splice(index, 1);
+    this.productForm.patchValue({ imageFiles: this.selectedImageFiles.length ? this.selectedImageFiles : null });
   }
 
   /**
@@ -792,6 +802,12 @@ export class ProductComponent implements OnInit, AfterViewInit {
    */
   private populateEditForm(product: ProductResponse): void {
     console.log("product files", product.files);
+    this.selectedImageFiles = [];
+    this.imagePreviews = [];
+    this.selectedSpecSheetFile = null;
+    this.specSheetFileName = null;
+    this.specSheetFileUrl = null;
+
     // Set basic fields
     this.productForm.patchValue({
       name: product.name,
@@ -801,6 +817,7 @@ export class ProductComponent implements OnInit, AfterViewInit {
       widthMm: product.widthMm,
       heightMm: product.heightMm,
       weightKg: product.weightKg,
+      price: (product as any).price ?? null,
       entryDate: product.entryDate ? new Date(product.entryDate).toISOString().split('T')[0] : '',
       description: product.description
     });
@@ -832,9 +849,10 @@ export class ProductComponent implements OnInit, AfterViewInit {
       }
     }
     
-    // Set image preview if available - find by fileType
+    // Set image previews if available - find by fileType
+    this.imagePreviews = [];
     if (product.files && product.files.length > 0) {
-      const imageFile = product.files.find(file => {
+      const imageFiles = product.files.filter(file => {
         const fileType = (file as any).fileType || '';
         return fileType && (
           fileType.startsWith('image/') || 
@@ -844,9 +862,7 @@ export class ProductComponent implements OnInit, AfterViewInit {
           fileType === 'image/webp'
         );
       });
-      if (imageFile) {
-        this.imagePreview = imageFile.fileUrl;
-      }
+      this.imagePreviews = imageFiles.map(file => file.fileUrl);
 
       // Set spec sheet URL if available - find by fileType
       const specSheetFile = product.files.find(file => {
@@ -886,6 +902,9 @@ export class ProductComponent implements OnInit, AfterViewInit {
       formDataToSend.append('widthMm', this.productForm.value.widthMm.toString());
       formDataToSend.append('heightMm', this.productForm.value.heightMm.toString());
       formDataToSend.append('weightKg', this.productForm.value.weightKg.toString());
+      if (this.productForm.value.price !== null && this.productForm.value.price !== undefined && this.productForm.value.price !== '') {
+        formDataToSend.append('price', this.productForm.value.price.toString());
+      }
       formDataToSend.append('entryDate', this.productForm.value.entryDate);
       formDataToSend.append('description', this.productForm.value.description);
       
@@ -893,9 +912,9 @@ export class ProductComponent implements OnInit, AfterViewInit {
         formDataToSend.append('providerId', this.productForm.value.providerId.toString());
       }
       
-      // Append image file if a new one is selected
-      if (this.selectedImageFile) {
-        formDataToSend.append('imageFile', this.selectedImageFile);
+      // Append image files if new ones are selected
+      if (this.selectedImageFiles.length) {
+        this.selectedImageFiles.forEach((file) => formDataToSend.append('imageFiles', file));
       }
       
       // Append spec sheet file if a new one is selected
@@ -936,6 +955,9 @@ export class ProductComponent implements OnInit, AfterViewInit {
       formDataToSend.append('widthMm', this.productForm.value.widthMm.toString());
       formDataToSend.append('heightMm', this.productForm.value.heightMm.toString());
       formDataToSend.append('weightKg', this.productForm.value.weightKg.toString());
+      if (this.productForm.value.price !== null && this.productForm.value.price !== undefined && this.productForm.value.price !== '') {
+        formDataToSend.append('price', this.productForm.value.price.toString());
+      }
       formDataToSend.append('entryDate', this.productForm.value.entryDate);
       formDataToSend.append('description', this.productForm.value.description);
       
@@ -943,8 +965,8 @@ export class ProductComponent implements OnInit, AfterViewInit {
         formDataToSend.append('providerId', this.productForm.value.providerId.toString());
       }
       
-      if (this.selectedImageFile) {
-        formDataToSend.append('imageFile', this.selectedImageFile);
+      if (this.selectedImageFiles.length) {
+        this.selectedImageFiles.forEach((file) => formDataToSend.append('imageFiles', file));
       }
       
       if (this.selectedSpecSheetFile) {
@@ -1037,7 +1059,8 @@ export class ProductComponent implements OnInit, AfterViewInit {
           <div>
             <p style="margin: 8px 0;"><strong>Status:</strong><br><span class="badge bg-success">${this.getProductStatusLabel(product.status)}</span></p>
             <p style="margin: 8px 0;"><strong>Dimensions:</strong><br>${product.lengthMm}mm × ${product.widthMm}mm × ${product.heightMm}mm</p>
-            <p style="margin: 8px 0;"><strong>Weight:</strong><br>${product.weightKg} kg</p>
+             <p style="margin: 8px 0;"><strong>Weight:</strong><br>${product.weightKg} kg</p>
+             <p style="margin: 8px 0;"><strong>Price:</strong><br>${(product as any).price != null ? `${(product as any).price} EUR` : 'N/A'}</p>
             <p style="margin: 8px 0;"><strong>Entry Date:</strong><br>${new Date(product.entryDate).toLocaleDateString()}</p>
           </div>
         </div>

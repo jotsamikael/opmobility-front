@@ -22,6 +22,8 @@ export interface StorageCaseFilters {
   heightMm?: number;
   status?: string;
   locationId?: number;
+  providerId?: number;
+  productId?: number;
   observations?: string;
 }
 
@@ -75,6 +77,7 @@ export class StoragecaseComponent implements OnInit, AfterViewInit {
   statusFilterControl = new FormControl<string | null>(null);
   locationFilterInputControl = new FormControl<string | LocationResponse | null>(null);
   providerFilterInputControl = new FormControl<string | GetProviderResponse | null>(null);
+  productFilterInputControl = new FormControl<string | ProductResponse | null>(null);
   
   // Options for dropdowns/autocomplete
   storageCaseStatuses = STORAGE_CASE_STATUSES;
@@ -89,6 +92,7 @@ export class StoragecaseComponent implements OnInit, AfterViewInit {
   filteredProviders: Observable<GetProviderResponse[]>;
   filteredProvidersForFilter: Observable<GetProviderResponse[]>;
   filteredProducts: Observable<ProductResponse[]>;
+  filteredProductsForFilter: Observable<ProductResponse[]>;
   
   // Form controls for autocomplete
   locationInputControl = new FormControl<string | LocationResponse>('');
@@ -157,6 +161,11 @@ export class StoragecaseComponent implements OnInit, AfterViewInit {
       startWith(''),
       map(value => this._filterProducts(value || ''))
     );
+
+    this.filteredProductsForFilter = this.productFilterInputControl.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filterProducts(value || ''))
+    );
   }
 
   ngOnInit(): void {
@@ -206,6 +215,12 @@ export class StoragecaseComponent implements OnInit, AfterViewInit {
     }
     if (this.filters.locationId) {
       queryParams.locationId = this.filters.locationId;
+    }
+    if (this.filters.providerId) {
+      queryParams.providerId = this.filters.providerId;
+    }
+    if (this.filters.productId) {
+      queryParams.productId = this.filters.productId;
     }
     if (this.filters.observations) {
       queryParams.observations = this.filters.observations;
@@ -475,7 +490,7 @@ export class StoragecaseComponent implements OnInit, AfterViewInit {
    */
   onFilterProviderSelected(event: any): void {
     const provider = event.option.value as GetProviderResponse;
-    // Note: providerId is not in filters interface, add if needed
+    this.filters.providerId = provider.id;
     this.providerFilterInputControl.setValue(provider);
   }
 
@@ -487,6 +502,29 @@ export class StoragecaseComponent implements OnInit, AfterViewInit {
       const currentValue = this.providerFilterInputControl.value;
       if (typeof currentValue === 'string' || !currentValue) {
         this.providerFilterInputControl.setValue(null);
+        this.filters.providerId = undefined;
+      }
+    }
+  }
+
+  /**
+   * Handle filter product selection
+   */
+  onFilterProductSelected(event: any): void {
+    const product = event.option.value as ProductResponse;
+    this.filters.productId = product.id;
+    this.productFilterInputControl.setValue(product);
+  }
+
+  /**
+   * Handle filter product input blur
+   */
+  onFilterProductInputBlur(): void {
+    if (!this.filterAutocompletePanelOpen) {
+      const currentValue = this.productFilterInputControl.value;
+      if (typeof currentValue === 'string' || !currentValue) {
+        this.productFilterInputControl.setValue(null);
+        this.filters.productId = undefined;
       }
     }
   }
@@ -559,6 +597,18 @@ export class StoragecaseComponent implements OnInit, AfterViewInit {
     this.filters.status = this.statusFilterControl.value || undefined;
     if (this.locationFilterInputControl.value && typeof this.locationFilterInputControl.value === 'object') {
       this.filters.locationId = (this.locationFilterInputControl.value as LocationResponse).id;
+    } else {
+      this.filters.locationId = undefined;
+    }
+    if (this.providerFilterInputControl.value && typeof this.providerFilterInputControl.value === 'object') {
+      this.filters.providerId = (this.providerFilterInputControl.value as GetProviderResponse).id;
+    } else {
+      this.filters.providerId = undefined;
+    }
+    if (this.productFilterInputControl.value && typeof this.productFilterInputControl.value === 'object') {
+      this.filters.productId = (this.productFilterInputControl.value as ProductResponse).id;
+    } else {
+      this.filters.productId = undefined;
     }
     this.filters.page = 1;
     this.loadStorageCases();
@@ -572,6 +622,7 @@ export class StoragecaseComponent implements OnInit, AfterViewInit {
     this.statusFilterControl.setValue(null);
     this.locationFilterInputControl.setValue(null);
     this.providerFilterInputControl.setValue(null);
+    this.productFilterInputControl.setValue(null);
     
     this.filters = {
       page: 1,
