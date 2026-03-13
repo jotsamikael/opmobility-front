@@ -42,7 +42,7 @@ export class PodiumComponent implements OnInit, AfterViewInit {
   breadCrumbItems: Array<{}>;
   
   // Table properties
-  displayedColumns: string[] = ['image', 'ref', 'name', 'location', 'state', 'dimensions', 'actions'];
+  displayedColumns: string[] = ['image', 'ref', 'name', 'location', 'state', 'dimensions', 'price', 'actions'];
   dataSource: MatTableDataSource<any> = new MatTableDataSource<any>([]);
  
   // Pagination properties
@@ -544,6 +544,7 @@ export class PodiumComponent implements OnInit, AfterViewInit {
       lengthMm: podium.lengthMm || null,
       widthMm: podium.widthMm || null,
       heightMm: podium.heightMm || null,
+      price: podium.price ?? null,
       observations: podium.observations || '',
       locationId: podium.locationId || podium.location?.id || null
     });
@@ -587,6 +588,9 @@ export class PodiumComponent implements OnInit, AfterViewInit {
       formDataToSend.append('lengthMm', this.podiumForm.value.lengthMm.toString());
       formDataToSend.append('widthMm', this.podiumForm.value.widthMm.toString());
       formDataToSend.append('heightMm', this.podiumForm.value.heightMm.toString());
+      if (this.podiumForm.value.price !== null && this.podiumForm.value.price !== undefined && this.podiumForm.value.price !== '') {
+        formDataToSend.append('price', this.podiumForm.value.price.toString());
+      }
       formDataToSend.append('observations', this.podiumForm.value.observations);
       
       // Append image file if a new one is selected
@@ -623,6 +627,9 @@ export class PodiumComponent implements OnInit, AfterViewInit {
       formDataToSend.append('lengthMm', this.podiumForm.value.lengthMm.toString());
       formDataToSend.append('widthMm', this.podiumForm.value.widthMm.toString());
       formDataToSend.append('heightMm', this.podiumForm.value.heightMm.toString());
+      if (this.podiumForm.value.price !== null && this.podiumForm.value.price !== undefined && this.podiumForm.value.price !== '') {
+        formDataToSend.append('price', this.podiumForm.value.price.toString());
+      }
       formDataToSend.append('observations', this.podiumForm.value.observations);
       
       if (this.selectedImageFile) {
@@ -699,6 +706,7 @@ export class PodiumComponent implements OnInit, AfterViewInit {
           <div>
             <p style="margin: 8px 0;"><strong>State:</strong><br><span class="badge bg-success">${this.getPodiumStateLabel(podium.state || 'AVAILABLE')}</span></p>
             <p style="margin: 8px 0;"><strong>Dimensions:</strong><br>${dimensions}</p>
+            <p style="margin: 8px 0;"><strong>Price:</strong><br>${podium.price != null ? `${podium.price} EUR` : 'N/A'}</p>
           </div>
         </div>
         

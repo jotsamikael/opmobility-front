@@ -30,6 +30,11 @@ export interface UpdatePodiumDto {
   name?: string;
 
   /**
+   * The price of the podium
+   */
+  price?: number;
+
+  /**
    * The observations of the podium
    */
   observations?: string;

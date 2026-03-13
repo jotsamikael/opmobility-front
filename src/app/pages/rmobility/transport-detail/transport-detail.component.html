@@ -62,7 +62,7 @@
             <ng-container matColumnDef="image">
               <th mat-header-cell *matHeaderCellDef>Image</th>
               <td mat-cell *matCellDef="let row">
-                <div class="d-flex align-items-center justify-content-center">
+                <div class="d-flex align-items-center justify-content-center thumb-wrapper">
                   <img
                     *ngIf="getPodiumImageUrl($any(row).podium)"
                     [src]="getPodiumImageUrl($any(row).podium)"
@@ -70,6 +70,9 @@
                     (error)="onImageError($event)"
                     class="thumb"
                     (click)="onViewPodiumDetails(row)">
+                  <span class="image-count-badge" *ngIf="getPodiumImageUrls($any(row).podium).length > 1">
+                    +{{ getPodiumImageUrls($any(row).podium).length - 1 }}
+                  </span>
                   <mat-icon *ngIf="!getPodiumImageUrl($any(row).podium)" class="image-missing">image_not_supported</mat-icon>
                 </div>
               </td>
@@ -141,7 +144,7 @@
             <ng-container matColumnDef="image">
               <th mat-header-cell *matHeaderCellDef>Image</th>
               <td mat-cell *matCellDef="let row">
-                <div class="d-flex align-items-center justify-content-center">
+                <div class="d-flex align-items-center justify-content-center thumb-wrapper">
                   <img
                     *ngIf="getProductImageUrl($any(row).product)"
                     [src]="getProductImageUrl($any(row).product)"
@@ -149,6 +152,9 @@
                     (error)="onImageError($event)"
                     class="thumb"
                     (click)="onViewProductDetails(row)">
+                  <span class="image-count-badge" *ngIf="getProductImageUrls($any(row).product).length > 1">
+                    +{{ getProductImageUrls($any(row).product).length - 1 }}
+                  </span>
                   <mat-icon *ngIf="!getProductImageUrl($any(row).product)" class="image-missing">image_not_supported</mat-icon>
                 </div>
               </td>

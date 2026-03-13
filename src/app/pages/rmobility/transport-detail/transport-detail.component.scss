@@ -22,6 +22,27 @@
   cursor: pointer;
 }
 
+.thumb-wrapper {
+  position: relative;
+  width: 50px;
+  height: 50px;
+}
+
+.image-count-badge {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  background: #556ee6;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 10px;
+  line-height: 1;
+  padding: 4px 6px;
+  min-width: 20px;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
 .image-missing {
   font-size: 36px;
   width: 36px;

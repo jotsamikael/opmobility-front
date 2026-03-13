@@ -200,6 +200,14 @@
                   </td>
                 </ng-container>
 
+                <!-- Price Column -->
+                <ng-container matColumnDef="price">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header="price"> Price </th>
+                  <td mat-cell *matCellDef="let row">
+                    <span>{{$any(row).price != null ? ($any(row).price + ' EUR') : 'N/A'}}</span>
+                  </td>
+                </ng-container>
+
                 <!-- Actions Column -->
                 <ng-container matColumnDef="actions">
                   <th mat-header-cell *matHeaderCellDef> Actions </th>
@@ -388,6 +396,19 @@
                         <mat-icon matPrefix class="me-2">description</mat-icon>
                         <mat-error *ngIf="podiumForm.get('observations')?.hasError('required')">
                           Observations are required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Price (EUR) - Optional</mat-label>
+                        <input matInput type="number" step="0.01" min="0" formControlName="price" placeholder="Enter price">
+                        <mat-icon matPrefix class="me-2">payments</mat-icon>
+                        <mat-error *ngIf="podiumForm.get('price')?.hasError('min')">
+                          Price must be greater than or equal to 0
                         </mat-error>
                       </mat-form-field>
                     </div>

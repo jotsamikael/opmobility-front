@@ -124,6 +124,7 @@ export class GlobalFormBuilder {
       lengthMm: [null, [Validators.required, Validators.min(1)]],
       widthMm: [null, [Validators.required, Validators.min(1)]],
       heightMm: [null, [Validators.required, Validators.min(1)]],
+      price: [null, [Validators.min(0)]],
       observations: ['', [Validators.required]],
       imageFile: [null]
     });

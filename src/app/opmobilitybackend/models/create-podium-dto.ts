@@ -12,7 +12,7 @@ export interface CreatePodiumDto {
   /**
    * Podium image file for the request
    */
-  imageFile: Blob;
+  imageFile?: Blob;
 
   /**
    * The length of the podium in mm
@@ -28,6 +28,11 @@ export interface CreatePodiumDto {
    * The name of the podium
    */
   name: string;
+
+  /**
+   * The price of the podium
+   */
+  price?: number;
 
   /**
    * The observations of the podium

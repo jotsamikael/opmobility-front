@@ -87,42 +87,38 @@ export class TransportDetailComponent implements OnInit {
   }
 
   getPodiumImageUrl(podium: any): string | null {
-    if (!podium || !podium.images || !podium.images.length) {
-      return null;
-    }
-
-    const imageFile = podium.images.find((file: any) => {
-      const fileType = file.fileType || file.mimeType || '';
-      if (!fileType) {
-        return false;
-      }
-      return fileType.startsWith('image/') || fileType === 'image/jpeg' || fileType === 'image/jpg' || fileType === 'image/png' || fileType === 'image/webp';
-    });
-
-    if (imageFile?.fileUrl) {
-      return imageFile.fileUrl;
-    }
-
-    return podium.images[0]?.fileUrl || null;
+    return this.getPodiumImageUrls(podium)[0] || null;
   }
 
   getProductImageUrl(product: any): string | null {
-    if (!product || !product.files || !product.files.length) {
-      return null;
+    return this.getProductImageUrls(product)[0] || null;
+  }
+
+  getPodiumImageUrls(podium: any): string[] {
+    if (!podium || !Array.isArray(podium.images)) {
+      return [];
     }
 
-    const imageFile = product.files.find((file: any) => {
-      const fileType = file.fileType || '';
-      return fileType && (
-        fileType.startsWith('image/') ||
-        fileType === 'image/jpeg' ||
-        fileType === 'image/jpg' ||
-        fileType === 'image/png' ||
-        fileType === 'image/webp'
-      );
-    });
+    return podium.images
+      .filter((file: any) => this.isImageFile(file))
+      .map((file: any) => file.fileUrl)
+      .filter((url: string) => !!url);
+  }
 
-    return imageFile?.fileUrl || null;
+  getProductImageUrls(product: any): string[] {
+    if (!product || !Array.isArray(product.files)) {
+      return [];
+    }
+
+    return product.files
+      .filter((file: any) => this.isImageFile(file))
+      .map((file: any) => file.fileUrl)
+      .filter((url: string) => !!url);
+  }
+
+  private isImageFile(file: any): boolean {
+    const fileType = (file?.fileType || file?.mimeType || '').toString().toLowerCase();
+    return fileType.startsWith('image/') || fileType === 'image/jpeg' || fileType === 'image/jpg' || fileType === 'image/png' || fileType === 'image/webp';
   }
 
   onImageError(event: any): void {
@@ -137,7 +133,7 @@ export class TransportDetailComponent implements OnInit {
       return;
     }
 
-    const imageUrl = this.getPodiumImageUrl(podium);
+    const imageUrls = this.getPodiumImageUrls(podium);
     const dimensions = podium.lengthMm && podium.widthMm && podium.heightMm
       ? `${podium.lengthMm}mm x ${podium.widthMm}mm x ${podium.heightMm}mm`
       : 'N/A';
@@ -145,8 +141,10 @@ export class TransportDetailComponent implements OnInit {
     const htmlContent = `
       <div class="text-start" style="max-width: 100%;">
         <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-          ${imageUrl
-            ? `<img src="${imageUrl}" alt="${podium.name || podium.ref || 'Podium'}" style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onerror="this.src='assets/images/users/avatar-1.jpg'; this.onerror=null;">`
+          ${imageUrls.length
+            ? `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px;">${imageUrls
+                .map((url: string, index: number) => `<img src="${url}" alt="${podium.name || podium.ref || 'Podium'} image ${index + 1}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onerror="this.src='assets/images/users/avatar-1.jpg'; this.onerror=null;">`)
+                .join('')}</div>`
             : `<div style="padding: 40px; color: #999;"><i class="mdi mdi-48px mdi-image-off"></i><p style="margin-top: 10px;">No image available</p></div>`}
         </div>
 
@@ -187,7 +185,7 @@ export class TransportDetailComponent implements OnInit {
       return;
     }
 
-    const imageUrl = this.getProductImageUrl(product);
+    const imageUrls = this.getProductImageUrls(product);
     const dimensions = product.lengthMm && product.widthMm && product.heightMm
       ? `${product.lengthMm}mm x ${product.widthMm}mm x ${product.heightMm}mm`
       : 'N/A';
@@ -195,8 +193,10 @@ export class TransportDetailComponent implements OnInit {
     const htmlContent = `
       <div class="text-start" style="max-width: 100%;">
         <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-          ${imageUrl
-            ? `<img src="${imageUrl}" alt="${product.name || product.ref || 'Product'}" style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onerror="this.src='assets/images/users/avatar-1.jpg'; this.onerror=null;">`
+          ${imageUrls.length
+            ? `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px;">${imageUrls
+                .map((url: string, index: number) => `<img src="${url}" alt="${product.name || product.ref || 'Product'} image ${index + 1}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onerror="this.src='assets/images/users/avatar-1.jpg'; this.onerror=null;">`)
+                .join('')}</div>`
             : `<div style="padding: 40px; color: #999;"><i class="mdi mdi-48px mdi-image-off"></i><p style="margin-top: 10px;">No image available</p></div>`}
         </div>
 
