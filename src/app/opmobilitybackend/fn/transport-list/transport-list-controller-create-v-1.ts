@@ -18,7 +18,7 @@ export interface TransportListControllerCreateV1$Params {
 export function transportListControllerCreateV1(http: HttpClient, rootUrl: string, params: TransportListControllerCreateV1$Params, context?: HttpContext): Observable<StrictHttpResponse<GetTransportListResponse>> {
   const rb = new RequestBuilder(rootUrl, transportListControllerCreateV1.PATH, 'post');
   if (params) {
-    rb.body(params.body, 'multipart/form-data');
+    rb.body(params.body, 'application/json');
   }
 
   return http.request(

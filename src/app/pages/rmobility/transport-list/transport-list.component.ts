@@ -56,7 +56,7 @@ export class TransportListComponent implements OnInit, AfterViewInit {
   Math = Math;
   
   // Table properties
-  displayedColumns: string[] = ['id', 'name', 'event', 'status', 'versionNo', 'pdfUrl', 'createdAt', 'updatedAt', 'view', 'actions'];
+  displayedColumns: string[] = ['id', 'name', 'event', 'status', 'versionNo', 'warehouseOutDate', 'warehouseReturnDate', 'createdAt', 'updatedAt', 'view', 'actions'];
   dataSource: MatTableDataSource<GetTransportListResponse> = new MatTableDataSource<GetTransportListResponse>([]);
  
   // Pagination properties
@@ -118,9 +118,6 @@ export class TransportListComponent implements OnInit, AfterViewInit {
   selectedPodiums: SelectedTransportPodium[] = [];
   selectedProducts: SelectedTransportProduct[] = [];
   isEditMode = false;
-  selectedPdfFile: File | null = null;
-  pdfFilePreview: string | null = null;
-  currentPdfUrl: string | null = null;
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
@@ -626,9 +623,6 @@ export class TransportListComponent implements OnInit, AfterViewInit {
   onEditTransportList(transportList: GetTransportListResponse): void {
     this.isEditMode = true;
     this.selectedTransportList = transportList;
-    this.selectedPdfFile = null;
-    this.pdfFilePreview = null;
-    this.currentPdfUrl = transportList.pdfUrl || null;
 
     // Find event
     const event = this.eventOptions.find(e => (e as any).id === transportList.eventId);
@@ -638,7 +632,9 @@ export class TransportListComponent implements OnInit, AfterViewInit {
 
     this.transportListForm.patchValue({
       name: transportList.name,
-      eventId: transportList.eventId
+      eventId: transportList.eventId,
+      warehouseOutDate: (transportList as any).warehouseOutDate || '',
+      warehouseReturnDate: (transportList as any).warehouseReturnDate || ''
     }, { emitEvent: false });
 
     setTimeout(() => {
@@ -681,34 +677,6 @@ export class TransportListComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * Handle PDF file selection
-   */
-  onPdfFileSelected(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      if (file.type !== 'application/pdf') {
-        this.notificationService.error('Please select a PDF file.');
-        return;
-      }
-      if (file.size > 10 * 1024 * 1024) { // 10MB
-        this.notificationService.error('File size must be less than 10MB.');
-        return;
-      }
-      
-      this.selectedPdfFile = file;
-      this.pdfFilePreview = null; // PDFs can't be previewed as images
-    }
-  }
-
-  /**
-   * Remove PDF file
-   */
-  removePdfFile(): void {
-    this.selectedPdfFile = null;
-    this.pdfFilePreview = null;
-  }
-
-  /**
    * Close modal
    */
   closeModal(): void {
@@ -728,9 +696,6 @@ export class TransportListComponent implements OnInit, AfterViewInit {
   resetCreateWizardState(): void {
     this.transportListForm.reset();
     this.eventInputControl.setValue('');
-    this.selectedPdfFile = null;
-    this.pdfFilePreview = null;
-    this.currentPdfUrl = null;
     this.createdTransportList = null;
     this.selectedPodiums = [];
     this.selectedProducts = [];
@@ -778,21 +743,18 @@ export class TransportListComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    if (!this.selectedPdfFile) {
-      this.notificationService.error('Please select a PDF file.');
-      return;
-    }
-
     this.isCreatingTransport = true;
 
     const formValue = this.transportListForm.value;
-    const formData = new FormData();
-    formData.append('name', formValue.name);
-    formData.append('eventId', formValue.eventId.toString());
-    formData.append('pdfFile', this.selectedPdfFile);
+    const payload = {
+      name: formValue.name,
+      eventId: Number(formValue.eventId),
+      warehouseOutDate: formValue.warehouseOutDate,
+      warehouseReturnDate: formValue.warehouseReturnDate
+    };
 
     this.transportListService.transportListControllerCreateV1$Response({
-      body: formData as any
+      body: payload as any
     } as any).subscribe({
       next: (response) => {
         this.createdTransportList = response.body;
@@ -901,33 +863,21 @@ export class TransportListComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // For create, PDF file is required
-    if (!this.isEditMode && !this.selectedPdfFile) {
-      this.notificationService.error('Please select a PDF file.');
-      return;
-    }
-
     this.isSubmitting = true;
 
     const formValue = this.transportListForm.value;
 
     if (this.isEditMode && this.selectedTransportList) {
-      // Update - create FormData for file upload if PDF is selected
-      const formData = new FormData();
-      formData.append('name', formValue.name);
-      
-      // Include eventId if changed
-      if (formValue.eventId !== this.selectedTransportList.eventId) {
-        formData.append('eventId', formValue.eventId.toString());
-      }
-      
-      if (this.selectedPdfFile) {
-        formData.append('pdfFile', this.selectedPdfFile);
-      }
+      const payload: any = {
+        name: formValue.name,
+        eventId: Number(formValue.eventId),
+        warehouseOutDate: formValue.warehouseOutDate,
+        warehouseReturnDate: formValue.warehouseReturnDate
+      };
 
       this.transportListService.transportListControllerUpdateV1$Response({
         id: (this.selectedTransportList as any).id,
-        body: formData as any
+        body: payload as any
       } as any).subscribe({
         next: () => {
           this.notificationService.success('Transport list updated successfully!');
@@ -942,17 +892,15 @@ export class TransportListComponent implements OnInit, AfterViewInit {
         }
       });
     } else {
-      // Create - create FormData for file upload
-      const formData = new FormData();
-      formData.append('name', formValue.name);
-      formData.append('eventId', formValue.eventId.toString());
-      
-      if (this.selectedPdfFile) {
-        formData.append('pdfFile', this.selectedPdfFile);
-      }
+      const payload = {
+        name: formValue.name,
+        eventId: Number(formValue.eventId),
+        warehouseOutDate: formValue.warehouseOutDate,
+        warehouseReturnDate: formValue.warehouseReturnDate
+      };
 
       this.transportListService.transportListControllerCreateV1$Response({
-        body: formData as any
+        body: payload as any
       } as any).subscribe({
         next: () => {
           this.notificationService.success('Transport list created successfully!');

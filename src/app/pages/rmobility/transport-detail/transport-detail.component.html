@@ -38,11 +38,12 @@
             <div class="value">{{ transport?.eventId || 'N/A' }}</div>
           </div>
           <div class="col-md-3">
-            <span class="label">PDF</span>
-            <div class="value">
-              <a *ngIf="transport?.pdfUrl" [href]="transport?.pdfUrl" target="_blank">View PDF</a>
-              <span *ngIf="!transport?.pdfUrl">N/A</span>
-            </div>
+            <span class="label">Out Date</span>
+            <div class="value">{{ (transport as any)?.warehouseOutDate || 'N/A' }}</div>
+          </div>
+          <div class="col-md-2">
+            <span class="label">Return Date</span>
+            <div class="value">{{ (transport as any)?.warehouseReturnDate || 'N/A' }}</div>
           </div>
         </div>
       </div>

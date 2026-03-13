@@ -14,7 +14,7 @@ export interface TransportListControllerUpdateV1$Params {
   id: number;
   
     /**
-     * Update transport list data with optional PDF file
+     * Update transport list data
      */
     body: {
 
@@ -29,9 +29,14 @@ export interface TransportListControllerUpdateV1$Params {
 'eventId'?: number;
 
 /**
- * PDF file for the transport list (optional)
+ * Warehouse out date (store exit date)
  */
-'pdfFile'?: Blob;
+'warehouseOutDate'?: string;
+
+/**
+ * Warehouse return date
+ */
+'warehouseReturnDate'?: string;
 }
 }
 
@@ -39,7 +44,7 @@ export function transportListControllerUpdateV1(http: HttpClient, rootUrl: strin
   const rb = new RequestBuilder(rootUrl, transportListControllerUpdateV1.PATH, 'patch');
   if (params) {
     rb.path('id', params.id, {});
-    rb.body(params.body, 'multipart/form-data');
+    rb.body(params.body, 'application/json');
   }
 
   return http.request(

@@ -237,7 +237,9 @@ export class GlobalFormBuilder {
   transportListForm(){
     return this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(255)]],
-      eventId: [null, Validators.required]
+      eventId: [null, Validators.required],
+      warehouseOutDate: ['', Validators.required],
+      warehouseReturnDate: ['', Validators.required]
     });
   }
 }

@@ -15,7 +15,12 @@ export interface CreateTransportListDto {
   name: string;
 
   /**
-   * PDF file for the transport list
+   * Warehouse out date (store exit date)
    */
-  pdfFile: Blob;
+  warehouseOutDate: string;
+
+  /**
+   * Warehouse return date
+   */
+  warehouseReturnDate: string;
 }

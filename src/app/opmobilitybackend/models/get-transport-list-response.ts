@@ -8,8 +8,9 @@ export interface GetTransportListResponse {
   eventId: number;
   id: number;
   name: string;
-  pdfUrl?: string;
   status: 'Active' | 'Archived';
   updatedAt: string;
   versionNo: number;
+  warehouseOutDate?: string;
+  warehouseReturnDate?: string;
 }
