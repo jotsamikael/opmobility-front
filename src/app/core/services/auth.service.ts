@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { AuthStorageService } from './auth-storage.service';
 import { AuthErrorResponse, ApiErrorResponse } from '../interfaces/api-error.interface';
-import { LoginResponseDto, RefreshTokenResponseDto } from 'src/app/opmobilitybackend/models';
-import { AuthService } from 'src/app/opmobilitybackend/services/auth.service';
+import { LoginResponseDto, RefreshTokenResponseDto, UserResponseDto } from 'src/app/opmobilitybackend/models';
+import { AuthService as BackendAuthService } from 'src/app/opmobilitybackend/services/auth.service';
 
 export interface LoginRequest {
   email: string;
@@ -20,7 +20,8 @@ export class AuthenticationService {
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
   constructor(
-    private authService: AuthService,
+    private authService: BackendAuthService,
+    private http: HttpClient,
     private authStorageService: AuthStorageService
   ) {
     // Initialize authentication state
@@ -82,6 +83,14 @@ export class AuthenticationService {
    */
   getRefreshToken(): string | null {
     return this.authStorageService.getRefreshToken();
+  }
+
+  syncCurrentUser(): Observable<UserResponseDto> {
+    return this.http.get<UserResponseDto>(`${this.authService.rootUrl}/api/v1/auth/me`).pipe(
+      tap((user: UserResponseDto) => {
+        this.authStorageService.setCurrentUser(user);
+      })
+    );
   }
 
 
@@ -324,4 +333,3 @@ export class AuthenticationService {
     return null;
     }
 }
-

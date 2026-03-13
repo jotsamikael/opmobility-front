@@ -175,14 +175,14 @@
                 <ng-container matColumnDef="warehouseOutDate">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header="warehouseOutDate"> Out Date </th>
                   <td mat-cell *matCellDef="let row">
-                    <span>{{ (row as any).warehouseOutDate || 'N/A' }}</span>
+                    <span>{{ $any(row).warehouseOutDate || 'N/A' }}</span>
                   </td>
                 </ng-container>
 
                 <ng-container matColumnDef="warehouseReturnDate">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header="warehouseReturnDate"> Return Date </th>
                   <td mat-cell *matCellDef="let row">
-                    <span>{{ (row as any).warehouseReturnDate || 'N/A' }}</span>
+                    <span>{{ $any(row).warehouseReturnDate || 'N/A' }}</span>
                   </td>
                 </ng-container>
 

@@ -47,6 +47,21 @@ export class AuthStorageService {
     return this.currentUserSubject.value;
   }
 
+  setCurrentUser(user: UserResponseDto): void {
+    const currentAuth = this.currentUserSubject.value;
+    if (!currentAuth) {
+      return;
+    }
+
+    const updatedAuth: AuthUser = {
+      ...currentAuth,
+      user
+    };
+
+    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    this.currentUserSubject.next(updatedAuth);
+  }
+
   /**
    * Get access token from localStorage storage
    */

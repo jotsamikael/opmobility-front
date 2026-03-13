@@ -8,6 +8,7 @@ import {
 } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, filter, take, switchMap } from 'rxjs/operators';
+import { Router } from '@angular/router';
 import { AuthenticationService } from '../services/auth.service';
 import { NotificationService } from '../services/notification.service';
 
@@ -15,10 +16,12 @@ import { NotificationService } from '../services/notification.service';
 export class AuthInterceptor implements HttpInterceptor {
   private isRefreshing = false;
   private refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(null);
+  private isHandlingAuthFailure = false;
 
   constructor(
     private authService: AuthenticationService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private router: Router
   ) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -75,8 +78,7 @@ export class AuthInterceptor implements HttpInterceptor {
     // Check if we have a refresh token before attempting to refresh
     const refreshToken = this.authService.getRefreshToken();
     if (!refreshToken) {
-      this.authService.logout();
-      this.notificationService.error('Session expired. Please login again.');
+      this.handleAuthenticationFailure();
       return throwError(() => new Error('No refresh token available'));
     }
 
@@ -93,8 +95,7 @@ export class AuthInterceptor implements HttpInterceptor {
         }),
         catchError((error) => {
           this.isRefreshing = false;
-          this.authService.logout();
-          this.notificationService.error('Session expired. Please login again.');
+          this.handleAuthenticationFailure();
           return throwError(() => error);
         })
       );
@@ -105,5 +106,21 @@ export class AuthInterceptor implements HttpInterceptor {
         switchMap(token => next.handle(this.addToken(request, token)))
       );
     }
+  }
+
+  private handleAuthenticationFailure(): void {
+    this.authService.logout();
+
+    if (this.isHandlingAuthFailure) {
+      return;
+    }
+
+    this.isHandlingAuthFailure = true;
+    this.notificationService.error('Session expired. Please login again.');
+
+    const returnUrl = this.router.url && this.router.url !== '/login' ? this.router.url : '/backend/staff';
+    this.router.navigate(['/login'], { queryParams: { returnUrl } }).finally(() => {
+      this.isHandlingAuthFailure = false;
+    });
   }
 }
