@@ -914,7 +914,7 @@ export class ProductComponent implements OnInit, AfterViewInit {
       
       // Append image files if new ones are selected
       if (this.selectedImageFiles.length) {
-        this.selectedImageFiles.forEach((file) => formDataToSend.append('imageFiles', file));
+        this.selectedImageFiles.forEach((file) => formDataToSend.append('imageFile', file));
       }
       
       // Append spec sheet file if a new one is selected
@@ -966,7 +966,7 @@ export class ProductComponent implements OnInit, AfterViewInit {
       }
       
       if (this.selectedImageFiles.length) {
-        this.selectedImageFiles.forEach((file) => formDataToSend.append('imageFiles', file));
+        this.selectedImageFiles.forEach((file) => formDataToSend.append('imageFile', file));
       }
       
       if (this.selectedSpecSheetFile) {
