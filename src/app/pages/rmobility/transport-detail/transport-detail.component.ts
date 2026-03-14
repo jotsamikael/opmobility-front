@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import Swal from 'sweetalert2';
+import * as XLSX from 'xlsx';
 import { NotificationService } from 'src/app/core/services/notification.service';
 import { GetTransportListResponse, Podium, ProductResponse } from 'src/app/opmobilitybackend/models';
 import { TransportItemService, TransportListService, TransportPodiumService } from 'src/app/opmobilitybackend/services';
@@ -12,6 +13,20 @@ import { TransportItemService, TransportListService, TransportPodiumService } fr
   styleUrls: ['./transport-detail.component.scss']
 })
 export class TransportDetailComponent implements OnInit {
+  private readonly manifestHeaders: string[] = [
+    'Picture',
+    'Description',
+    'Designation',
+    'Marketing Ref.',
+    'Alphastore ref',
+    'HS CODE',
+    'Dimensions (mm) / Weight (kg)',
+    'Location',
+    'Package',
+    'Price (€)',
+    'Battery/electronics'
+  ];
+
   breadCrumbItems: Array<{}> = [
     { label: 'RMobility' },
     { label: 'Transport List' },
@@ -235,5 +250,139 @@ export class TransportDetailComponent implements OnInit {
       return 'N/A';
     }
     return new Date(dateValue).toLocaleString();
+  }
+
+  exportTransportManifest(): void {
+    const rows = [
+      ...this.productItems.map((item) => this.mapProductManifestRow(item)),
+      ...this.podiumItems.map((item) => this.mapPodiumManifestRow(item))
+    ];
+
+    if (!rows.length) {
+      this.notificationService.warning('No transport data to export.');
+      return;
+    }
+
+    const title = `Liste de Transport ${this.transport?.name || `#${this.transportId || ''}`}`;
+    const worksheetData: Array<Array<string | number>> = [
+      [title],
+      this.manifestHeaders,
+      ...rows
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    worksheet['!merges'] = [XLSX.utils.decode_range('A1:K1')];
+    worksheet['!cols'] = [
+      { wch: 30 },
+      { wch: 34 },
+      { wch: 24 },
+      { wch: 20 },
+      { wch: 18 },
+      { wch: 18 },
+      { wch: 30 },
+      { wch: 24 },
+      { wch: 20 },
+      { wch: 14 },
+      { wch: 28 }
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Transport');
+
+    const fileName = `transport-${this.transportId || 'details'}-manifest.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+  }
+
+  private mapProductManifestRow(item: any): string[] {
+    const product = item?.product || {};
+    const imageUrl = this.getProductImageUrl(product) || 'N/A';
+    const dimensionsAndWeight = this.buildDimensionsAndWeight(
+      product.lengthMm,
+      product.widthMm,
+      product.heightMm,
+      item?.grossWeightKg ?? product.weightKg
+    );
+
+    return [
+      imageUrl,
+      product.description || product.name || 'N/A',
+      product.name || 'N/A',
+      product.ref || 'N/A',
+      product.ref || 'N/A',
+      item?.hsCode || 'N/A',
+      dimensionsAndWeight,
+      this.getLocationLabel(product.location),
+      this.getPackageLabel(item?.storageCase),
+      this.formatPrice(product.price),
+      item?.batteryElectronics || 'No battery inside / No electronics'
+    ];
+  }
+
+  private mapPodiumManifestRow(item: any): string[] {
+    const podium = item?.podium || {};
+    const imageUrl = this.getPodiumImageUrl(podium) || 'N/A';
+    const dimensionsAndWeight = this.buildDimensionsAndWeight(
+      podium.lengthMm,
+      podium.widthMm,
+      podium.heightMm,
+      item?.grossWeightKg
+    );
+
+    return [
+      imageUrl,
+      podium.name || 'N/A',
+      podium.name || 'N/A',
+      podium.ref || 'N/A',
+      podium.ref || 'N/A',
+      item?.hsCode || 'N/A',
+      dimensionsAndWeight,
+      this.getLocationLabel(podium.location),
+      this.getPackageLabel(item?.storageCase),
+      this.formatPrice(podium.price),
+      item?.batteryElectronics || 'No battery inside / No electronics'
+    ];
+  }
+
+  private buildDimensionsAndWeight(lengthMm: any, widthMm: any, heightMm: any, weightKg: any): string {
+    const dimensions = [lengthMm, widthMm, heightMm].every((value) => value !== null && value !== undefined && value !== '')
+      ? `${lengthMm} x ${widthMm} x ${heightMm}`
+      : 'N/A';
+    const weight = weightKg !== null && weightKg !== undefined && weightKg !== '' ? `${weightKg} kg` : 'N/A';
+    return `${dimensions}\n${weight}`;
+  }
+
+  private getLocationLabel(location: any): string {
+    if (!location) {
+      return 'N/A';
+    }
+
+    const parts: string[] = [];
+    if (location.warehouse?.name) {
+      parts.push(location.warehouse.name);
+    }
+    if (location.aisle) {
+      parts.push(`Aisle: ${location.aisle}`);
+    }
+    if (location.positionLabel) {
+      parts.push(`Position: ${location.positionLabel}`);
+    }
+
+    return parts.length ? parts.join(' - ') : 'N/A';
+  }
+
+  private getPackageLabel(storageCase: any): string {
+    if (!storageCase) {
+      return 'N/A';
+    }
+
+    return storageCase.name || storageCase.ref || storageCase.code || 'N/A';
+  }
+
+  private formatPrice(value: any): string {
+    if (value === null || value === undefined || value === '') {
+      return 'N/A';
+    }
+
+    return `${value}`;
   }
 }
