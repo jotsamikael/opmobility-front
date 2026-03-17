@@ -121,11 +121,17 @@ export class TransportDetailComponent implements OnInit {
   }
 
   getProductImageUrls(product: any): string[] {
-    if (!product || !Array.isArray(product.files)) {
+    const productFiles = product?.files;
+    const productImages = product?.images;
+    const fileCandidates = Array.isArray(productFiles)
+      ? productFiles
+      : (Array.isArray(productImages) ? productImages : []);
+
+    if (!product || !fileCandidates.length) {
       return [];
     }
 
-    return product.files
+    return fileCandidates
       .filter((file: any) => this.isImageFile(file))
       .map((file: any) => file.fileUrl)
       .filter((url: string) => !!url);
