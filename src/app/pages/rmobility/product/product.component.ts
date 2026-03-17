@@ -4,7 +4,8 @@ import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { debounceTime, distinctUntilChanged, startWith, map, Observable } from 'rxjs';
+import { debounceTime, distinctUntilChanged, startWith, map, Observable, firstValueFrom } from 'rxjs';
+import * as XLSX from 'xlsx';
 import { GlobalFormBuilder } from 'src/app/core/globalFormBuilder';
 import { NotificationService } from 'src/app/core/services/notification.service';
 import { CommonService } from 'src/app/core/services/common.service';
@@ -189,43 +190,7 @@ export class ProductComponent implements OnInit, AfterViewInit {
    */
   loadProducts(): void {
     this.isLoading = true;
-    
-    const queryParams: any = {
-      page: this.filters.page || 1,
-      limit: this.filters.limit || 10
-    };
-    
-    if (this.filters.name) {
-      queryParams.name = this.filters.name;
-    }
-    
-    if (this.filters.ref) {
-      queryParams.ref = this.filters.ref;
-    }
-    
-    if (this.filters.status) {
-      queryParams.status = this.filters.status;
-    }
-    
-    if (this.filters.categoryId) {
-      queryParams.categoryId = Number(this.filters.categoryId);
-    }
-    
-    if (this.filters.locationId) {
-      queryParams.locationId = Number(this.filters.locationId);
-    }
-    
-    if (this.filters.providerId) {
-      queryParams.providerId = Number(this.filters.providerId);
-    }
-    
-    if (this.filters.description) {
-      queryParams.description = this.filters.description;
-    }
-    
-    if (this.filters.entryDate) {
-      queryParams.entryDate = this.filters.entryDate;
-    }
+    const queryParams = this.buildQueryParams(this.filters.page || 1, this.filters.limit || 10);
     
     this.productService.productControllerGetAllProductsV1(queryParams).subscribe({
       next: (response: any) => {
@@ -252,6 +217,116 @@ export class ProductComponent implements OnInit, AfterViewInit {
         this.isLoading = false;
       }
     });
+  }
+
+  async exportAllProductsToExcel(): Promise<void> {
+    try {
+      this.isLoading = true;
+      const products = await this.fetchAllProductsForExport();
+
+      if (!products.length) {
+        this.notificationService.warning('No products to export.');
+        return;
+      }
+
+      const rows = products.map((product) => ({
+        Reference: product.ref || 'N/A',
+        Name: product.name || 'N/A',
+        Category: product.category?.name || 'N/A',
+        Location: product.location ? this.displayLocation(product.location) : 'N/A',
+        Status: product.status || 'N/A',
+        Dimensions: this.getDimensions(product),
+        'Weight (kg)': product.weightKg ?? 'N/A',
+        'Price (€)': product.price ?? 'N/A',
+        Provider: product.provider?.name || 'N/A',
+        Description: product.description || 'N/A',
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Products');
+
+      const now = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(workbook, `products-export-${now}.xlsx`);
+      this.notificationService.success('Products exported successfully!');
+    } catch (error) {
+      console.error('Error exporting products:', error);
+      this.notificationService.error('Failed to export products. Please try again.');
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  private async fetchAllProductsForExport(): Promise<ProductResponse[]> {
+    const pageSize = 500;
+    let currentPage = 1;
+    let totalPages = 1;
+    const items: ProductResponse[] = [];
+
+    while (currentPage <= totalPages && currentPage <= 500) {
+      const queryParams = this.buildQueryParams(currentPage, pageSize);
+      const response: any = await firstValueFrom(this.productService.productControllerGetAllProductsV1(queryParams));
+
+      const pageItems: ProductResponse[] = response?.items || (Array.isArray(response) ? response : []);
+      items.push(...pageItems);
+
+      if (response?.meta?.totalPages) {
+        totalPages = Number(response.meta.totalPages) || 1;
+      } else if (!response?.items) {
+        totalPages = 1;
+      }
+
+      currentPage += 1;
+    }
+
+    return items;
+  }
+
+  private buildQueryParams(page: number, limit: number): any {
+    const queryParams: any = { page, limit };
+
+    if (this.filters.name) {
+      queryParams.name = this.filters.name;
+    }
+
+    if (this.filters.ref) {
+      queryParams.ref = this.filters.ref;
+    }
+
+    if (this.filters.status) {
+      queryParams.status = this.filters.status;
+    }
+
+    if (this.filters.categoryId) {
+      queryParams.categoryId = Number(this.filters.categoryId);
+    }
+
+    if (this.filters.locationId) {
+      queryParams.locationId = Number(this.filters.locationId);
+    }
+
+    if (this.filters.providerId) {
+      queryParams.providerId = Number(this.filters.providerId);
+    }
+
+    if (this.filters.description) {
+      queryParams.description = this.filters.description;
+    }
+
+    if (this.filters.entryDate) {
+      queryParams.entryDate = this.filters.entryDate;
+    }
+
+    return queryParams;
+  }
+
+  private getDimensions(product: ProductResponse): string {
+    const hasAllDimensions = product.lengthMm !== undefined && product.widthMm !== undefined && product.heightMm !== undefined;
+    if (!hasAllDimensions) {
+      return 'N/A';
+    }
+
+    return `${product.lengthMm} x ${product.widthMm} x ${product.heightMm}`;
   }
 
   /**

@@ -420,16 +420,24 @@
                       <div class="mb-3">
                         <label class="form-label d-flex align-items-center">
                           <mat-icon class="me-2">image</mat-icon>
-                          Podium Image (JPEG, PNG, WebP - Max 5MB)
+                          Podium Images (JPEG, PNG, WebP - Max 5MB each)
                         </label>
-                        <input type="file" class="form-control" accept="image/jpeg,image/jpg,image/png,image/webp" (change)="onImageFileSelected($event)">
-                        <div *ngIf="imagePreview" class="mt-2">
-                          <img [src]="imagePreview" alt="Podium Image Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
-                          <button mat-icon-button color="warn" (click)="removeImageFile()" class="ms-2">
+                        <input type="file" class="form-control" accept="image/jpeg,image/jpg,image/png,image/webp" multiple (change)="onImageFileSelected($event)">
+                        <div *ngIf="imagePreviews.length" class="mt-2 d-flex flex-wrap gap-2">
+                          <div *ngFor="let preview of imagePreviews; let i = index" class="position-relative">
+                            <img [src]="preview" alt="Podium Image Preview" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">
+                            <button mat-mini-fab color="warn" type="button" (click)="removeImageFile(i)" class="position-absolute" style="top: -10px; right: -10px; width: 26px; height: 26px; line-height: 26px;">
+                              <mat-icon style="font-size: 16px;">close</mat-icon>
+                            </button>
+                          </div>
+                        </div>
+                        <div *ngIf="imagePreviews.length" class="mt-2">
+                          <button mat-stroked-button color="warn" type="button" (click)="removeImageFile()">
                             <mat-icon>delete</mat-icon>
+                            Remove all
                           </button>
                         </div>
-                        <small class="form-text text-muted">Optional: Upload a podium image</small>
+                        <small class="form-text text-muted">Optional: Upload one or multiple podium images</small>
                       </div>
                     </div>
                   </div>

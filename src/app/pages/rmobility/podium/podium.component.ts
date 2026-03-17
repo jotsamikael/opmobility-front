@@ -92,8 +92,8 @@ export class PodiumComponent implements OnInit, AfterViewInit {
   isEditMode = false;
   
   // File upload properties
-  selectedImageFile: File | null = null;
-  imagePreview: string | null = null;
+  selectedImageFiles: File[] = [];
+  imagePreviews: string[] = [];
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
@@ -324,40 +324,62 @@ export class PodiumComponent implements OnInit, AfterViewInit {
    * Handle image file selection
    */
   onImageFileSelected(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      // Validate file type
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const files: File[] = Array.from(event.target.files || []);
+    if (!files.length) {
+      return;
+    }
+
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const validFiles: File[] = [];
+
+    for (const file of files) {
       if (!validTypes.includes(file.type)) {
         this.notificationService.error('Invalid file type. Only JPEG, PNG, and WebP images are allowed.');
-        return;
+        continue;
       }
-      
-      // Validate file size (max 5MB)
+
       if (file.size > 5 * 1024 * 1024) {
-        this.notificationService.error('Image file size must be less than 5MB.');
-        return;
+        this.notificationService.error('Each image file size must be less than 5MB.');
+        continue;
       }
-      
-      this.selectedImageFile = file;
-      this.podiumForm.patchValue({ imageFile: file });
-      
-      // Create preview
+
+      validFiles.push(file);
+    }
+
+    if (!validFiles.length) {
+      return;
+    }
+
+    this.selectedImageFiles = validFiles;
+    this.podiumForm.patchValue({ imageFile: validFiles[0] });
+
+    this.imagePreviews = [];
+    validFiles.forEach((file) => {
       const reader = new FileReader();
       reader.onload = (e: any) => {
-        this.imagePreview = e.target.result;
+        this.imagePreviews.push(e.target.result);
       };
       reader.readAsDataURL(file);
-    }
+    });
   }
 
   /**
    * Remove image file
    */
-  removeImageFile(): void {
-    this.selectedImageFile = null;
-    this.imagePreview = null;
-    this.podiumForm.patchValue({ imageFile: null });
+  removeImageFile(index?: number): void {
+    if (index === undefined) {
+      this.selectedImageFiles = [];
+      this.imagePreviews = [];
+      this.podiumForm.patchValue({ imageFile: null });
+      return;
+    }
+
+    this.selectedImageFiles.splice(index, 1);
+    this.imagePreviews.splice(index, 1);
+
+    if (!this.selectedImageFiles.length) {
+      this.podiumForm.patchValue({ imageFile: null });
+    }
   }
 
   /**
@@ -560,12 +582,13 @@ export class PodiumComponent implements OnInit, AfterViewInit {
     }
     
     // Set image preview if available - use getPodiumImageUrl logic
-    const imageUrl = this.getPodiumImageUrl(podium);
-    if (imageUrl) {
-      this.imagePreview = imageUrl;
-    } else {
-      this.imagePreview = null;
-    }
+    const imageUrls = Array.isArray(podium.images)
+      ? podium.images
+          .map((file: any) => file?.fileUrl)
+          .filter((fileUrl: string | undefined) => !!fileUrl)
+      : [];
+
+    this.imagePreviews = imageUrls;
   }
 
   /**
@@ -593,9 +616,9 @@ export class PodiumComponent implements OnInit, AfterViewInit {
       }
       formDataToSend.append('observations', this.podiumForm.value.observations);
       
-      // Append image file if a new one is selected
-      if (this.selectedImageFile) {
-        formDataToSend.append('imageFile', this.selectedImageFile);
+      // Append image files if selected
+      if (this.selectedImageFiles.length) {
+        this.selectedImageFiles.forEach((file) => formDataToSend.append('imageFiles', file));
       }
       
       this.podiumService.podiumControllerUpdateV1({
@@ -632,8 +655,8 @@ export class PodiumComponent implements OnInit, AfterViewInit {
       }
       formDataToSend.append('observations', this.podiumForm.value.observations);
       
-      if (this.selectedImageFile) {
-        formDataToSend.append('imageFile', this.selectedImageFile);
+      if (this.selectedImageFiles.length) {
+        this.selectedImageFiles.forEach((file) => formDataToSend.append('imageFiles', file));
       }
       
       this.podiumService.podiumControllerCreateV1({

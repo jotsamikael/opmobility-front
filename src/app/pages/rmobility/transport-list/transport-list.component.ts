@@ -5,7 +5,7 @@ import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatStepper } from '@angular/material/stepper';
-import { startWith, map, Observable, forkJoin } from 'rxjs';
+import { startWith, map, Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import { GlobalFormBuilder } from 'src/app/core/globalFormBuilder';
 import { NotificationService } from 'src/app/core/services/notification.service';
@@ -13,7 +13,7 @@ import Swal from 'sweetalert2';
 import { GetTransportListResponse } from 'src/app/opmobilitybackend/models/get-transport-list-response';
 import { GetExpoEventResponse } from 'src/app/opmobilitybackend/models/get-expo-event-response';
 import { Podium, ProductResponse } from 'src/app/opmobilitybackend/models';
-import { TransportListService, ExpoEventService, PodiumService, ProductService, TransportPodiumService, TransportItemService } from 'src/app/opmobilitybackend/services';
+import { TransportListService, ExpoEventService, PodiumService, ProductService } from 'src/app/opmobilitybackend/services';
 
 // Transport list filters interface
 export interface TransportListFilters {
@@ -110,11 +110,8 @@ export class TransportListComponent implements OnInit, AfterViewInit {
   selectedTransportList: GetTransportListResponse | null = null;
   isSubmitting = false;
   isCreatingTransport = false;
-  isSavingPodiums = false;
-  isSavingProducts = false;
 
   currentStepperIndex = 0;
-  createdTransportList: GetTransportListResponse | null = null;
   selectedPodiums: SelectedTransportPodium[] = [];
   selectedProducts: SelectedTransportProduct[] = [];
   isEditMode = false;
@@ -131,8 +128,6 @@ export class TransportListComponent implements OnInit, AfterViewInit {
     private expoEventService: ExpoEventService,
     private podiumService: PodiumService,
     private productService: ProductService,
-    private transportPodiumService: TransportPodiumService,
-    private transportItemService: TransportItemService,
     private notificationService: NotificationService,
     private dialog: MatDialog,
     private router: Router
@@ -687,8 +682,6 @@ export class TransportListComponent implements OnInit, AfterViewInit {
     this.resetCreateWizardState();
     this.isSubmitting = false;
     this.isCreatingTransport = false;
-    this.isSavingPodiums = false;
-    this.isSavingProducts = false;
     this.isEditMode = false;
     this.selectedTransportList = null;
   }
@@ -696,7 +689,6 @@ export class TransportListComponent implements OnInit, AfterViewInit {
   resetCreateWizardState(): void {
     this.transportListForm.reset();
     this.eventInputControl.setValue('');
-    this.createdTransportList = null;
     this.selectedPodiums = [];
     this.selectedProducts = [];
     this.podiumInputControl.setValue(null);
@@ -743,6 +735,16 @@ export class TransportListComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    stepper.next();
+  }
+
+  submitPodiumsStep(): void {
+    if (this.transportListForm.invalid) {
+      this.transportListForm.markAllAsTouched();
+      this.notificationService.error('Please fill all required transport information.');
+      return;
+    }
+
     this.isCreatingTransport = true;
 
     const formValue = this.transportListForm.value;
@@ -750,17 +752,25 @@ export class TransportListComponent implements OnInit, AfterViewInit {
       name: formValue.name,
       eventId: Number(formValue.eventId),
       warehouseOutDate: formValue.warehouseOutDate,
-      warehouseReturnDate: formValue.warehouseReturnDate
+      warehouseReturnDate: formValue.warehouseReturnDate,
+      products: this.selectedProducts.map((product) => ({
+        productId: product.productId,
+        notes: product.notes || undefined,
+      })),
+      podiums: this.selectedPodiums.map((podium) => ({
+        podiumId: podium.podiumId,
+        notes: podium.notes || undefined,
+      })),
     };
 
     this.transportListService.transportListControllerCreateV1$Response({
       body: payload as any
     } as any).subscribe({
-      next: (response) => {
-        this.createdTransportList = response.body;
-        this.notificationService.success('Transport created. You can now add products.');
+      next: () => {
+        this.notificationService.success('Transport list created successfully.');
         this.isCreatingTransport = false;
-        stepper.next();
+        this.closeModal();
+        this.loadTransportLists();
       },
       error: (error) => {
         console.error('Error creating transport list:', error);
@@ -770,81 +780,8 @@ export class TransportListComponent implements OnInit, AfterViewInit {
     });
   }
 
-  submitPodiumsStep(): void {
-    if (!this.createdTransportList?.id) {
-      this.notificationService.error('Transport list must be created first.');
-      return;
-    }
-
-    if (!this.selectedPodiums.length) {
-      this.notificationService.success('Transport list created successfully.');
-      this.closeModal();
-      this.loadTransportLists();
-      return;
-    }
-
-    this.isSavingPodiums = true;
-
-    const requests = this.selectedPodiums.map((podium) =>
-      this.transportPodiumService.transportPodiumControllerCreateV1$Response({
-        body: {
-          transportListId: this.createdTransportList!.id,
-          podiumId: podium.podiumId,
-          notes: podium.notes || undefined
-        } as any
-      } as any)
-    );
-
-    forkJoin(requests).subscribe({
-      next: () => {
-        this.notificationService.success('Podiums added and transport created successfully.');
-        this.isSavingPodiums = false;
-        this.closeModal();
-        this.loadTransportLists();
-      },
-      error: (error) => {
-        console.error('Error adding podiums:', error);
-        this.notificationService.error('Failed to add podiums. Please try again.');
-        this.isSavingPodiums = false;
-      }
-    });
-  }
-
   submitProductsStep(stepper: MatStepper): void {
-    if (!this.createdTransportList?.id) {
-      this.notificationService.error('Transport list must be created first.');
-      return;
-    }
-
-    if (!this.selectedProducts.length) {
-      stepper.next();
-      return;
-    }
-
-    this.isSavingProducts = true;
-
-    const requests = this.selectedProducts.map((product) =>
-      this.transportItemService.transportItemControllerCreateV1$Response({
-        body: {
-          transportListId: this.createdTransportList!.id,
-          productId: product.productId,
-          notes: product.notes || undefined
-        } as any
-      } as any)
-    );
-
-    forkJoin(requests).subscribe({
-      next: () => {
-        this.notificationService.success('Products added successfully.');
-        this.isSavingProducts = false;
-        stepper.next();
-      },
-      error: (error) => {
-        console.error('Error adding products:', error);
-        this.notificationService.error('Failed to add products. Please try again.');
-        this.isSavingProducts = false;
-      }
-    });
+    stepper.next();
   }
 
   onViewTransportDetails(transportList: GetTransportListResponse): void {
