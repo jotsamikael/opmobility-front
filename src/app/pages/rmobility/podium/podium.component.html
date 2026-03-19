@@ -133,7 +133,7 @@
                 <ng-container matColumnDef="image">
                   <th mat-header-cell *matHeaderCellDef> Image </th>
                   <td mat-cell *matCellDef="let row"> 
-                    <div class="d-flex align-items-center justify-content-center">
+                    <div class="d-flex align-items-center justify-content-center" style="position: relative;">
                       <img 
                         *ngIf="getPodiumImageUrl(row)" 
                         [src]="getPodiumImageUrl(row)" 
@@ -142,6 +142,9 @@
                         style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; cursor: pointer;"
                         (click)="onViewPodium(row)"
                         class="podium-image-thumbnail">
+                      <span *ngIf="getPodiumImageUrls(row).length > 1" style="position: absolute; top: -6px; right: -6px; background: #556ee6; color: #fff; border-radius: 10px; padding: 1px 6px; font-size: 11px; line-height: 16px;">
+                        +{{ getPodiumImageUrls(row).length - 1 }}
+                      </span>
                       <mat-icon 
                         *ngIf="!getPodiumImageUrl(row)" 
                         style="font-size: 40px; width: 40px; height: 40px; color: #ccc;">

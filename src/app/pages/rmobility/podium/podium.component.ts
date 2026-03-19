@@ -471,12 +471,18 @@ export class PodiumComponent implements OnInit, AfterViewInit {
    * Get podium image URL from images array
    */
   getPodiumImageUrl(podium: any): string | null {
+    return this.getPodiumImageUrls(podium)[0] || null;
+  }
+
+  /**
+   * Get all podium image URLs
+   */
+  getPodiumImageUrls(podium: any): string[] {
     if (!podium.images || podium.images.length === 0) {
-      return null;
+      return [];
     }
-    
-    // First, try to find by fileType/mimeType if available
-    const imageFile = podium.images.find((file: any) => {
+
+    const filteredImages = podium.images.filter((file: any) => {
       const fileType = file.fileType || file.mimeType || '';
       if (fileType) {
         return fileType.startsWith('image/') || 
@@ -485,21 +491,12 @@ export class PodiumComponent implements OnInit, AfterViewInit {
                fileType === 'image/png' || 
                fileType === 'image/webp';
       }
-      return false;
+      return !!file?.fileUrl;
     });
-    
-    if (imageFile && imageFile.fileUrl) {
-      return imageFile.fileUrl;
-    }
-    
-    // If no fileType is available, return the first image's fileUrl
-    // Podiums only have images (PODIUM_IMAGE purpose), so we can safely return the first one
-    const firstImage = podium.images[0];
-    if (firstImage && firstImage.fileUrl) {
-      return firstImage.fileUrl;
-    }
-    
-    return null;
+
+    return filteredImages
+      .map((file: any) => file?.fileUrl)
+      .filter((url: string | undefined) => !!url);
   }
 
   /**
@@ -685,8 +682,8 @@ export class PodiumComponent implements OnInit, AfterViewInit {
    * View podium details
    */
   onViewPodium(podium: any): void {
-    // Get podium image URL
-    const imageUrl = this.getPodiumImageUrl(podium);
+    // Get podium image URLs
+    const imageUrls = this.getPodiumImageUrls(podium);
 
     // Build HTML content with image
     let htmlContent = `
@@ -695,12 +692,13 @@ export class PodiumComponent implements OnInit, AfterViewInit {
         <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
     `;
     
-    if (imageUrl) {
+    if (imageUrls.length) {
       htmlContent += `
-          <img src="${imageUrl}" 
-               alt="${podium.name || podium.ref || 'Podium'}" 
-               style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
-               onerror="this.src='assets/images/users/avatar-1.jpg'; this.onerror=null;">
+          <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px;">
+            ${imageUrls
+              .map((url: string, index: number) => `<img src="${url}" alt="${podium.name || podium.ref || 'Podium'} image ${index + 1}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onerror="this.src='assets/images/users/avatar-1.jpg'; this.onerror=null;">`)
+              .join('')}
+          </div>
       `;
     } else {
       htmlContent += `

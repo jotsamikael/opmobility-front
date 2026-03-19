@@ -4,8 +4,8 @@ import { forkJoin } from 'rxjs';
 import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
 import { NotificationService } from 'src/app/core/services/notification.service';
-import { GetTransportListResponse, Podium, ProductResponse } from 'src/app/opmobilitybackend/models';
-import { TransportItemService, TransportListService, TransportPodiumService } from 'src/app/opmobilitybackend/services';
+import { GetTransportListResponse, Podium, ProductResponse, GetExpoEventResponse } from 'src/app/opmobilitybackend/models';
+import { ExpoEventService, TransportItemService, TransportListService, TransportPodiumService } from 'src/app/opmobilitybackend/services';
 
 @Component({
   selector: 'app-transport-detail',
@@ -36,6 +36,7 @@ export class TransportDetailComponent implements OnInit {
   isLoading = false;
   transportId: number | null = null;
   transport: GetTransportListResponse | null = null;
+  eventName = 'N/A';
   podiumItems: any[] = [];
   productItems: any[] = [];
 
@@ -46,6 +47,7 @@ export class TransportDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private transportListService: TransportListService,
+    private expoEventService: ExpoEventService,
     private transportPodiumService: TransportPodiumService,
     private transportItemService: TransportItemService,
     private notificationService: NotificationService
@@ -74,6 +76,7 @@ export class TransportDetailComponent implements OnInit {
     }).subscribe({
       next: ({ transport, podiums, products }) => {
         this.transport = transport.body || null;
+        this.resolveEventName(this.transport?.eventId);
         this.podiumItems = (podiums.body as any[]) || [];
         this.productItems = (products.body as any[]) || [];
         this.isLoading = false;
@@ -82,6 +85,28 @@ export class TransportDetailComponent implements OnInit {
         console.error('Error loading transport details:', error);
         this.notificationService.error('Failed to load transport details.');
         this.isLoading = false;
+      }
+    });
+  }
+
+  private resolveEventName(eventId?: number): void {
+    if (!eventId) {
+      this.eventName = 'N/A';
+      return;
+    }
+
+    this.expoEventService.expoEventControllerGetAllExpoEventsV1$Response({
+      page: 1,
+      limit: 1000,
+    } as any).subscribe({
+      next: (response) => {
+        const responseBody = response.body as any;
+        const events = (responseBody?.items || responseBody || []) as GetExpoEventResponse[];
+        const matchedEvent = events.find((event) => (event as any).id === eventId);
+        this.eventName = matchedEvent?.name || `Event #${eventId}`;
+      },
+      error: () => {
+        this.eventName = `Event #${eventId}`;
       }
     });
   }

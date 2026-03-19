@@ -131,24 +131,24 @@ export class RepairComponent implements OnInit, AfterViewInit {
     // XOR logic: When product is selected, clear and disable storage case
     this.productInputControl.valueChanges.subscribe(value => {
       if (value && typeof value === 'object') {
-        this.repairForm.patchValue({ productId: (value as ProductResponse).id, storageCaseId: null });
-        this.storageCaseInputControl.setValue('');
-        this.storageCaseInputControl.disable();
+        this.repairForm.patchValue({ productId: (value as ProductResponse).id, storageCaseId: null }, { emitEvent: false });
+        this.storageCaseInputControl.setValue('', { emitEvent: false });
+        this.storageCaseInputControl.disable({ emitEvent: false });
       } else if (!value) {
-        this.repairForm.patchValue({ productId: null });
-        this.storageCaseInputControl.enable();
+        this.repairForm.patchValue({ productId: null }, { emitEvent: false });
+        this.storageCaseInputControl.enable({ emitEvent: false });
       }
     });
 
     // XOR logic: When storage case is selected, clear and disable product
     this.storageCaseInputControl.valueChanges.subscribe(value => {
       if (value && typeof value === 'object') {
-        this.repairForm.patchValue({ storageCaseId: (value as GetStorageCaseResponseDto).id, productId: null });
-        this.productInputControl.setValue('');
-        this.productInputControl.disable();
+        this.repairForm.patchValue({ storageCaseId: (value as GetStorageCaseResponseDto).id, productId: null }, { emitEvent: false });
+        this.productInputControl.setValue('', { emitEvent: false });
+        this.productInputControl.disable({ emitEvent: false });
       } else if (!value) {
-        this.repairForm.patchValue({ storageCaseId: null });
-        this.productInputControl.enable();
+        this.repairForm.patchValue({ storageCaseId: null }, { emitEvent: false });
+        this.productInputControl.enable({ emitEvent: false });
       }
     });
   }
@@ -348,10 +348,10 @@ export class RepairComponent implements OnInit, AfterViewInit {
    */
   onProductSelected(event: any): void {
     const product = event.option.value as ProductResponse;
-    this.repairForm.patchValue({ productId: product.id, storageCaseId: null });
-    this.productInputControl.setValue(product);
-    this.storageCaseInputControl.setValue('');
-    this.storageCaseInputControl.disable();
+    this.repairForm.patchValue({ productId: product.id, storageCaseId: null }, { emitEvent: false });
+    this.productInputControl.setValue(product, { emitEvent: false });
+    this.storageCaseInputControl.setValue('', { emitEvent: false });
+    this.storageCaseInputControl.disable({ emitEvent: false });
   }
 
   /**
@@ -359,10 +359,10 @@ export class RepairComponent implements OnInit, AfterViewInit {
    */
   onStorageCaseSelected(event: any): void {
     const storageCase = event.option.value as GetStorageCaseResponseDto;
-    this.repairForm.patchValue({ storageCaseId: storageCase.id, productId: null });
-    this.storageCaseInputControl.setValue(storageCase);
-    this.productInputControl.setValue('');
-    this.productInputControl.disable();
+    this.repairForm.patchValue({ storageCaseId: storageCase.id, productId: null }, { emitEvent: false });
+    this.storageCaseInputControl.setValue(storageCase, { emitEvent: false });
+    this.productInputControl.setValue('', { emitEvent: false });
+    this.productInputControl.disable({ emitEvent: false });
   }
 
   /**
@@ -540,10 +540,10 @@ export class RepairComponent implements OnInit, AfterViewInit {
     this.removeInvoiceFile();
     
     // Enable both inputs initially
-    this.productInputControl.enable();
-    this.storageCaseInputControl.enable();
-    this.productInputControl.setValue('');
-    this.storageCaseInputControl.setValue('');
+    this.productInputControl.enable({ emitEvent: false });
+    this.storageCaseInputControl.enable({ emitEvent: false });
+    this.productInputControl.setValue('', { emitEvent: false });
+    this.storageCaseInputControl.setValue('', { emitEvent: false });
     
     this.currentDialogRef = this.dialog.open(this.modalTemplate, {
       width: '900px',
