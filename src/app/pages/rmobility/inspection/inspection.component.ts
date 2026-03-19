@@ -117,24 +117,24 @@ export class InspectionComponent implements OnInit, AfterViewInit {
     // XOR logic: When product is selected, clear and disable storage case
     this.productInputControl.valueChanges.subscribe(value => {
       if (value && typeof value === 'object') {
-        this.inspectionForm.patchValue({ productId: (value as ProductResponse).id, storageCaseId: null });
-        this.storageCaseInputControl.setValue('');
-        this.storageCaseInputControl.disable();
+        this.inspectionForm.patchValue({ productId: (value as ProductResponse).id, storageCaseId: null }, { emitEvent: false });
+        this.storageCaseInputControl.setValue('', { emitEvent: false });
+        this.storageCaseInputControl.disable({ emitEvent: false });
       } else if (!value) {
-        this.inspectionForm.patchValue({ productId: null });
-        this.storageCaseInputControl.enable();
+        this.inspectionForm.patchValue({ productId: null }, { emitEvent: false });
+        this.storageCaseInputControl.enable({ emitEvent: false });
       }
     });
 
     // XOR logic: When storage case is selected, clear and disable product
     this.storageCaseInputControl.valueChanges.subscribe(value => {
       if (value && typeof value === 'object') {
-        this.inspectionForm.patchValue({ storageCaseId: (value as GetStorageCaseResponseDto).id, productId: null });
-        this.productInputControl.setValue('');
-        this.productInputControl.disable();
+        this.inspectionForm.patchValue({ storageCaseId: (value as GetStorageCaseResponseDto).id, productId: null }, { emitEvent: false });
+        this.productInputControl.setValue('', { emitEvent: false });
+        this.productInputControl.disable({ emitEvent: false });
       } else if (!value) {
-        this.inspectionForm.patchValue({ storageCaseId: null });
-        this.productInputControl.enable();
+        this.inspectionForm.patchValue({ storageCaseId: null }, { emitEvent: false });
+        this.productInputControl.enable({ emitEvent: false });
       }
     });
   }
@@ -298,10 +298,10 @@ export class InspectionComponent implements OnInit, AfterViewInit {
    */
   onProductSelected(event: any): void {
     const product = event.option.value as ProductResponse;
-    this.inspectionForm.patchValue({ productId: product.id, storageCaseId: null });
-    this.productInputControl.setValue(product);
-    this.storageCaseInputControl.setValue('');
-    this.storageCaseInputControl.disable();
+    this.inspectionForm.patchValue({ productId: product.id, storageCaseId: null }, { emitEvent: false });
+    this.productInputControl.setValue(product, { emitEvent: false });
+    this.storageCaseInputControl.setValue('', { emitEvent: false });
+    this.storageCaseInputControl.disable({ emitEvent: false });
   }
 
   /**
@@ -309,10 +309,10 @@ export class InspectionComponent implements OnInit, AfterViewInit {
    */
   onStorageCaseSelected(event: any): void {
     const storageCase = event.option.value as GetStorageCaseResponseDto;
-    this.inspectionForm.patchValue({ storageCaseId: storageCase.id, productId: null });
-    this.storageCaseInputControl.setValue(storageCase);
-    this.productInputControl.setValue('');
-    this.productInputControl.disable();
+    this.inspectionForm.patchValue({ storageCaseId: storageCase.id, productId: null }, { emitEvent: false });
+    this.storageCaseInputControl.setValue(storageCase, { emitEvent: false });
+    this.productInputControl.setValue('', { emitEvent: false });
+    this.productInputControl.disable({ emitEvent: false });
   }
 
   /**
@@ -409,10 +409,10 @@ export class InspectionComponent implements OnInit, AfterViewInit {
     this.commonService.resetForm(this.inspectionForm);
     
     // Reset autocomplete controls
-    this.productInputControl.enable();
-    this.storageCaseInputControl.enable();
-    this.productInputControl.setValue('');
-    this.storageCaseInputControl.setValue('');
+    this.productInputControl.enable({ emitEvent: false });
+    this.storageCaseInputControl.enable({ emitEvent: false });
+    this.productInputControl.setValue('', { emitEvent: false });
+    this.storageCaseInputControl.setValue('', { emitEvent: false });
     
     // Set default inspectedAt to current date/time
     const now = new Date();
