@@ -566,6 +566,7 @@ export class TownComponent implements OnInit, AfterViewInit {
         next: (response) => {
           console.log("update", response);
           this.notificationService.success('Town updated successfully!');
+          this.filters.page = 1;
           this.isSubmitting = false;
           this.commonService.enableForm(this.townForm);
           
@@ -587,6 +588,7 @@ export class TownComponent implements OnInit, AfterViewInit {
       }).subscribe({
         next: (response) => {
           this.notificationService.success('Town created successfully!');
+          this.filters.page = 1;
           this.isSubmitting = false;
           this.commonService.enableForm(this.townForm);
           

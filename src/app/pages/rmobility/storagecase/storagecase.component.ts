@@ -875,6 +875,7 @@ export class StoragecaseComponent implements OnInit, AfterViewInit {
       }).subscribe({
         next: (response) => {
           this.notificationService.success('Storage case updated successfully!');
+          this.filters.page = 1;
           this.isSubmitting = false;
           this.commonService.enableForm(this.storageCaseForm);
           
@@ -920,6 +921,7 @@ export class StoragecaseComponent implements OnInit, AfterViewInit {
       }).subscribe({
         next: (response) => {
           this.notificationService.success('Storage case created successfully!');
+          this.filters.page = 1;
           this.isSubmitting = false;
           this.commonService.enableForm(this.storageCaseForm);
           
@@ -1037,6 +1039,9 @@ export class StoragecaseComponent implements OnInit, AfterViewInit {
       cancelButtonText: 'Cancel'
     }).then((result) => {
       if (result.isConfirmed) {
+        if (this.dataSource.data.length <= 1 && this.currentPage > 1) {
+          this.filters.page = this.currentPage - 1;
+        }
         this.storageCaseService.storageCaseControllerRemoveV1({
           id: storageCase.id
         }).subscribe({

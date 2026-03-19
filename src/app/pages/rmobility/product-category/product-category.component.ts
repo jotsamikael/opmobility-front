@@ -314,6 +314,7 @@ export class ProductCategoryComponent implements OnInit, AfterViewInit {
         next: (response) => {
           console.log("update", response);
           this.notificationService.success('Product category updated successfully!');
+          this.filters.page = 1;
           this.isSubmitting = false;
           this.commonService.enableForm(this.productCategoryForm);
           
@@ -335,6 +336,7 @@ export class ProductCategoryComponent implements OnInit, AfterViewInit {
       }).subscribe({
         next: (response) => {
           this.notificationService.success('Product category created successfully!');
+          this.filters.page = 1;
           this.isSubmitting = false;
           this.commonService.enableForm(this.productCategoryForm);
           
@@ -400,6 +402,9 @@ export class ProductCategoryComponent implements OnInit, AfterViewInit {
       cancelButtonText: 'Cancel'
     }).then((result) => {
       if (result.isConfirmed) {
+        if (this.dataSource.data.length <= 1 && this.currentPage > 1) {
+          this.filters.page = this.currentPage - 1;
+        }
         this.productCategoryService.productCategoryControllerRemoveV1({
           id: productCategory.id
         }).subscribe({

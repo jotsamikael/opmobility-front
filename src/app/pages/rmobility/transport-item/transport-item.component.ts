@@ -742,6 +742,7 @@ export class TransportItemComponent implements OnInit, AfterViewInit {
       }).subscribe({
         next: (response) => {
           this.notificationService.success('Transport item updated successfully!');
+          this.loadTransportItems();
           this.currentDialogRef?.close(true);
           this.isSubmitting = false;
         },
@@ -759,6 +760,7 @@ export class TransportItemComponent implements OnInit, AfterViewInit {
       }).subscribe({
         next: (response) => {
           this.notificationService.success('Transport item created successfully!');
+          this.loadTransportItems();
           this.currentDialogRef?.close(true);
           this.isSubmitting = false;
         },

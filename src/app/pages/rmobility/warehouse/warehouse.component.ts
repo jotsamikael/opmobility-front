@@ -487,6 +487,7 @@ export class WarehouseComponent implements OnInit, AfterViewInit {
         next: (response) => {
           console.log("update", response);
           this.notificationService.success('Warehouse updated successfully!');
+          this.filters.page = 1;
           this.isSubmitting = false;
           this.commonService.enableForm(this.warehouseForm);
           
@@ -508,6 +509,7 @@ export class WarehouseComponent implements OnInit, AfterViewInit {
       }).subscribe({
         next: (response) => {
           this.notificationService.success('Warehouse created successfully!');
+          this.filters.page = 1;
           this.isSubmitting = false;
           this.commonService.enableForm(this.warehouseForm);
           
@@ -574,6 +576,9 @@ export class WarehouseComponent implements OnInit, AfterViewInit {
       cancelButtonText: 'Cancel'
     }).then((result) => {
       if (result.isConfirmed) {
+        if (this.dataSource.data.length <= 1 && this.currentPage > 1) {
+          this.filters.page = this.currentPage - 1;
+        }
         this.warehouseService.warehouseControllerRemoveV1({
           id: warehouse.id
         }).subscribe({

@@ -412,6 +412,9 @@ export class ExpoEventComponent implements OnInit, AfterViewInit {
       confirmButtonText: 'Yes, delete it!'
     }).then((result) => {
       if (result.isConfirmed) {
+        if (this.dataSource.data.length <= 1 && this.currentPage > 1) {
+          this.filters.page = this.currentPage - 1;
+        }
         this.expoEventService.expoEventControllerRemoveV1$Response({ id: expoEvent.id } as any).subscribe({
           next: () => {
             this.notificationService.success('Expo event deleted successfully');
@@ -554,6 +557,7 @@ export class ExpoEventComponent implements OnInit, AfterViewInit {
       } as any).subscribe({
         next: () => {
           this.notificationService.success('Expo event updated successfully');
+          this.filters.page = 1;
           this.isSubmitting = false;
           if (this.currentDialogRef) {
             this.currentDialogRef.close();
@@ -589,6 +593,7 @@ export class ExpoEventComponent implements OnInit, AfterViewInit {
       } as any).subscribe({
         next: () => {
           this.notificationService.success('Expo event created successfully');
+          this.filters.page = 1;
           this.isSubmitting = false;
           if (this.currentDialogRef) {
             this.currentDialogRef.close();

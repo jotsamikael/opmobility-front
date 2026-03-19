@@ -655,6 +655,9 @@ export class TransportListComponent implements OnInit, AfterViewInit {
       confirmButtonText: 'Yes, delete it!'
     }).then((result) => {
       if (result.isConfirmed) {
+        if (this.dataSource.data.length <= 1 && this.currentPage > 1) {
+          this.filters.page = this.currentPage - 1;
+        }
         this.transportListService.transportListControllerRemoveV1$Response({
           id: (transportList as any).id
         } as any).subscribe({
@@ -768,6 +771,7 @@ export class TransportListComponent implements OnInit, AfterViewInit {
     } as any).subscribe({
       next: () => {
         this.notificationService.success('Transport list created successfully.');
+        this.filters.page = 1;
         this.isCreatingTransport = false;
         this.closeModal();
         this.loadTransportLists();
@@ -818,6 +822,7 @@ export class TransportListComponent implements OnInit, AfterViewInit {
       } as any).subscribe({
         next: () => {
           this.notificationService.success('Transport list updated successfully!');
+          this.filters.page = 1;
           this.closeModal();
           this.loadTransportLists();
           this.isSubmitting = false;
@@ -841,6 +846,7 @@ export class TransportListComponent implements OnInit, AfterViewInit {
       } as any).subscribe({
         next: () => {
           this.notificationService.success('Transport list created successfully!');
+          this.filters.page = 1;
           this.closeModal();
           this.loadTransportLists();
           this.isSubmitting = false;

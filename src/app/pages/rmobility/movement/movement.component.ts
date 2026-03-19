@@ -699,6 +699,7 @@ export class MovementComponent implements OnInit, AfterViewInit {
       } as any).subscribe({
         next: () => {
           this.notificationService.success('Movement updated successfully!');
+          this.filters.page = 1;
           this.closeModal();
           this.loadMovements();
           this.isSubmitting = false;
@@ -716,6 +717,7 @@ export class MovementComponent implements OnInit, AfterViewInit {
       } as any).subscribe({
         next: () => {
           this.notificationService.success('Movement created successfully!');
+          this.filters.page = 1;
           this.closeModal();
           this.loadMovements();
           this.isSubmitting = false;
@@ -743,6 +745,9 @@ export class MovementComponent implements OnInit, AfterViewInit {
       confirmButtonText: 'Yes, delete it!'
     }).then((result) => {
       if (result.isConfirmed) {
+        if (this.dataSource.data.length <= 1 && this.currentPage > 1) {
+          this.filters.page = this.currentPage - 1;
+        }
         this.movementService.movementControllerRemoveV1$Response({
           id: (movement as any).id
         } as any).subscribe({

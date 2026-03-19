@@ -388,6 +388,7 @@ export class ProviderComponent implements OnInit, AfterViewInit {
         next: (response) => {
           console.log("update", response);
           this.notificationService.success('Provider updated successfully!');
+          this.filters.page = 1;
           this.isSubmitting = false;
           this.commonService.enableForm(this.providerForm);
           
@@ -410,6 +411,7 @@ export class ProviderComponent implements OnInit, AfterViewInit {
       }).subscribe({
         next: (response) => {
           this.notificationService.success('Provider created successfully!');
+          this.filters.page = 1;
           this.isSubmitting = false;
           this.commonService.enableForm(this.providerForm);
           
@@ -480,6 +482,9 @@ export class ProviderComponent implements OnInit, AfterViewInit {
       cancelButtonText: 'Cancel'
     }).then((result) => {
       if (result.isConfirmed) {
+        if (this.dataSource.data.length <= 1 && this.currentPage > 1) {
+          this.filters.page = this.currentPage - 1;
+        }
         this.providerService.providerControllerRemoveV1({
           id: provider.id
         }).subscribe({

@@ -627,6 +627,7 @@ export class LocationComponent implements OnInit, AfterViewInit {
         next: (response) => {
           console.log("update", response);
           this.notificationService.success('Location updated successfully!');
+          this.filters.page = 1;
           this.isSubmitting = false;
           this.commonService.enableForm(this.locationForm);
           
@@ -648,6 +649,7 @@ export class LocationComponent implements OnInit, AfterViewInit {
       }).subscribe({
         next: (response) => {
           this.notificationService.success('Location created successfully!');
+          this.filters.page = 1;
           this.isSubmitting = false;
           this.commonService.enableForm(this.locationForm);
           
@@ -716,6 +718,9 @@ export class LocationComponent implements OnInit, AfterViewInit {
       cancelButtonText: 'Cancel'
     }).then((result) => {
       if (result.isConfirmed) {
+        if (this.dataSource.data.length <= 1 && this.currentPage > 1) {
+          this.filters.page = this.currentPage - 1;
+        }
         this.locationService.locationControllerRemoveV1({
           id: location.id
         }).subscribe({

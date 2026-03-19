@@ -535,6 +535,7 @@ onSubmitForm(): void {
       next: (response) => {
         console.log("edit", response)
         this.notificationService.success('Staff member updated successfully!');
+        this.filters.page = 1;
         this.isSubmitting = false;
         this.commonService.enableForm(this.staffForm)
         
@@ -585,6 +586,7 @@ onSubmitForm(): void {
     }).subscribe({
       next: (response) => {
         this.notificationService.success('Staff member created successfully!');
+        this.filters.page = 1;
         this.isSubmitting = false;
         this.commonService.enableForm(this.staffForm)
         
@@ -797,6 +799,10 @@ getSubmitButtonText(): string {
    */
   private deleteStaff(staff: UserResponseDto): void {
     this.isLoading = true;
+
+    if (this.dataSource.data.length <= 1 && this.currentPage > 1) {
+      this.filters.page = this.currentPage - 1;
+    }
     
     // Show loading state
     Swal.fire({
@@ -835,4 +841,3 @@ getSubmitButtonText(): string {
     });
   }
 }
-

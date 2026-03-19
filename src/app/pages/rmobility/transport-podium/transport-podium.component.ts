@@ -529,6 +529,7 @@ export class TransportPodiumComponent implements OnInit, AfterViewInit {
       }).subscribe({
         next: (response) => {
           this.notificationService.success('Transport podium updated successfully!');
+          this.loadTransportPodiums();
           this.currentDialogRef?.close(true);
           this.isSubmitting = false;
         },
@@ -546,6 +547,7 @@ export class TransportPodiumComponent implements OnInit, AfterViewInit {
       }).subscribe({
         next: (response) => {
           this.notificationService.success('Transport podium created successfully!');
+          this.loadTransportPodiums();
           this.currentDialogRef?.close(true);
           this.isSubmitting = false;
         },

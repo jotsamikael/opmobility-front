@@ -519,6 +519,9 @@ export class ConsumableComponent implements OnInit, AfterViewInit {
       confirmButtonText: 'Yes, delete it!'
     }).then((result) => {
       if (result.isConfirmed) {
+        if (this.dataSource.data.length <= 1 && this.currentPage > 1) {
+          this.filters.page = this.currentPage - 1;
+        }
         this.consumableService.consumableControllerRemoveV1$Response({ id: consumable.id } as any).subscribe({
           next: () => {
             this.notificationService.success('Consumable deleted successfully');
@@ -778,6 +781,7 @@ export class ConsumableComponent implements OnInit, AfterViewInit {
       } as any).subscribe({
         next: () => {
           this.notificationService.success('Consumable updated successfully');
+          this.filters.page = 1;
           this.isSubmitting = false;
           if (this.currentDialogRef) {
             this.currentDialogRef.close();
@@ -816,6 +820,7 @@ export class ConsumableComponent implements OnInit, AfterViewInit {
       } as any).subscribe({
         next: () => {
           this.notificationService.success('Consumable created successfully');
+          this.filters.page = 1;
           this.isSubmitting = false;
           if (this.currentDialogRef) {
             this.currentDialogRef.close();
