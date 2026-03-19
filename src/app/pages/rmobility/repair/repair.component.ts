@@ -734,6 +734,8 @@ export class RepairComponent implements OnInit, AfterViewInit {
       }).subscribe({
         next: (response) => {
           this.notificationService.success('Repair updated successfully!');
+          this.filters.page = 1;
+          this.loadRepairs();
           this.currentDialogRef?.close(true);
           this.isSubmitting = false;
         },
@@ -751,6 +753,8 @@ export class RepairComponent implements OnInit, AfterViewInit {
       }).subscribe({
         next: (response) => {
           this.notificationService.success('Repair created successfully!');
+          this.filters.page = 1;
+          this.loadRepairs();
           this.currentDialogRef?.close(true);
           this.isSubmitting = false;
         },
@@ -780,6 +784,9 @@ export class RepairComponent implements OnInit, AfterViewInit {
     }).then((result) => {
       if (result.isConfirmed) {
         const repairId = (repair as any).id;
+        if (this.dataSource.data.length <= 1 && this.currentPage > 1) {
+          this.filters.page = this.currentPage - 1;
+        }
         this.repairService.repairControllerRemoveV1$Response({ id: repairId }).subscribe({
           next: () => {
             this.notificationService.success('Repair deleted successfully!');

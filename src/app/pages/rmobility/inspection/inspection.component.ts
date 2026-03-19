@@ -646,6 +646,8 @@ export class InspectionComponent implements OnInit, AfterViewInit {
       }).subscribe({
         next: (response) => {
           this.notificationService.success('Inspection updated successfully!');
+          this.filters.page = 1;
+          this.loadInspections();
           this.currentDialogRef?.close(true);
           this.isSubmitting = false;
         },
@@ -663,6 +665,8 @@ export class InspectionComponent implements OnInit, AfterViewInit {
       }).subscribe({
         next: (response) => {
           this.notificationService.success('Inspection created successfully!');
+          this.filters.page = 1;
+          this.loadInspections();
           this.currentDialogRef?.close(true);
           this.isSubmitting = false;
         },
@@ -692,6 +696,9 @@ export class InspectionComponent implements OnInit, AfterViewInit {
     }).then((result) => {
       if (result.isConfirmed) {
         const inspectionId = (inspection as any).id;
+        if (this.dataSource.data.length <= 1 && this.currentPage > 1) {
+          this.filters.page = this.currentPage - 1;
+        }
         this.inspectionService.inspectionControllerRemoveV1$Response({ id: inspectionId }).subscribe({
           next: () => {
             this.notificationService.success('Inspection deleted successfully!');
