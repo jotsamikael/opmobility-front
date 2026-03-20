@@ -76,6 +76,7 @@ export class TransportDetailComponent implements OnInit {
     }).subscribe({
       next: ({ transport, podiums, products }) => {
         this.transport = transport.body || null;
+        this.eventName = (this.transport as any)?.eventName || 'N/A';
         this.resolveEventName(this.transport?.eventId);
         this.podiumItems = (podiums.body as any[]) || [];
         this.productItems = (products.body as any[]) || [];
@@ -90,6 +91,10 @@ export class TransportDetailComponent implements OnInit {
   }
 
   private resolveEventName(eventId?: number): void {
+    if (this.eventName && this.eventName !== 'N/A') {
+      return;
+    }
+
     if (!eventId) {
       this.eventName = 'N/A';
       return;
@@ -103,10 +108,10 @@ export class TransportDetailComponent implements OnInit {
         const responseBody = response.body as any;
         const events = (responseBody?.items || responseBody || []) as GetExpoEventResponse[];
         const matchedEvent = events.find((event) => (event as any).id === eventId);
-        this.eventName = matchedEvent?.name || `Event #${eventId}`;
+        this.eventName = matchedEvent?.name || 'N/A';
       },
       error: () => {
-        this.eventName = `Event #${eventId}`;
+        this.eventName = 'N/A';
       }
     });
   }

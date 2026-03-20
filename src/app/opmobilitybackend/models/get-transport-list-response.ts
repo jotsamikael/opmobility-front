@@ -6,6 +6,7 @@ export interface GetTransportListResponse {
   createdAt: string;
   createdBy: number;
   eventId: number;
+  eventName?: string;
   id: number;
   name: string;
   status: 'Active' | 'Archived';

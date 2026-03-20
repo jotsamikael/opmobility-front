@@ -593,8 +593,16 @@ export class TransportListComponent implements OnInit, AfterViewInit {
    * Display event info
    */
   displayEventInfo(transportList: GetTransportListResponse): string {
-    // Event info would need to be loaded separately or included in response
-    return `Event ID: ${transportList.eventId}`;
+    if ((transportList as any).eventName) {
+      return (transportList as any).eventName;
+    }
+
+    const event = this.eventOptions.find((e) => (e as any).id === transportList.eventId);
+    if (event?.name) {
+      return event.name;
+    }
+
+    return 'N/A';
   }
 
   /**
