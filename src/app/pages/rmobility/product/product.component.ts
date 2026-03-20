@@ -799,10 +799,17 @@ export class ProductComponent implements OnInit, AfterViewInit {
    * Get product image URL from files array
    */
   getProductImageUrl(product: ProductResponse): string | null {
+    return this.getProductImageUrls(product)[0] || null;
+  }
+
+  /**
+   * Get all product image URLs from files array
+   */
+  getProductImageUrls(product: ProductResponse): string[] {
     if (!product.files || product.files.length === 0) {
-      return null;
+      return [];
     }
-    const imageFile = product.files.find(file => {
+    const imageFiles = product.files.filter(file => {
       const fileType = (file as any).fileType || '';
       return fileType && (
         fileType.startsWith('image/') || 
@@ -812,7 +819,8 @@ export class ProductComponent implements OnInit, AfterViewInit {
         fileType === 'image/webp'
       );
     });
-    return imageFile ? imageFile.fileUrl : null;
+
+    return imageFiles.map(file => file.fileUrl).filter((url) => !!url);
   }
 
   /**
@@ -832,6 +840,7 @@ export class ProductComponent implements OnInit, AfterViewInit {
     this.commonService.resetForm(this.productForm);
     // Ensure status is set to "Available" and disabled
     this.productForm.patchValue({ status: 'Available' });
+    this.productForm.patchValue({ hasBattery: false, isElectricalDevice: false });
     this.productForm.get('status')?.disable();
     this.removeImageFile();
     this.removeSpecSheetFile();
@@ -893,6 +902,8 @@ export class ProductComponent implements OnInit, AfterViewInit {
       heightMm: product.heightMm,
       weightKg: product.weightKg,
       price: (product as any).price ?? null,
+      hasBattery: !!(product as any).hasBattery,
+      isElectricalDevice: !!(product as any).isElectricalDevice,
       entryDate: product.entryDate ? new Date(product.entryDate).toISOString().split('T')[0] : '',
       description: product.description
     });
@@ -980,6 +991,8 @@ export class ProductComponent implements OnInit, AfterViewInit {
       if (this.productForm.value.price !== null && this.productForm.value.price !== undefined && this.productForm.value.price !== '') {
         formDataToSend.append('price', this.productForm.value.price.toString());
       }
+      formDataToSend.append('hasBattery', this.productForm.value.hasBattery ? 'true' : 'false');
+      formDataToSend.append('isElectricalDevice', this.productForm.value.isElectricalDevice ? 'true' : 'false');
       formDataToSend.append('entryDate', this.productForm.value.entryDate);
       formDataToSend.append('description', this.productForm.value.description);
       
@@ -1034,6 +1047,8 @@ export class ProductComponent implements OnInit, AfterViewInit {
       if (this.productForm.value.price !== null && this.productForm.value.price !== undefined && this.productForm.value.price !== '') {
         formDataToSend.append('price', this.productForm.value.price.toString());
       }
+      formDataToSend.append('hasBattery', this.productForm.value.hasBattery ? 'true' : 'false');
+      formDataToSend.append('isElectricalDevice', this.productForm.value.isElectricalDevice ? 'true' : 'false');
       formDataToSend.append('entryDate', this.productForm.value.entryDate);
       formDataToSend.append('description', this.productForm.value.description);
       
@@ -1090,8 +1105,8 @@ export class ProductComponent implements OnInit, AfterViewInit {
    * View product details
    */
   onViewProduct(product: ProductResponse): void {
-    // Get product image URL
-    const imageUrl = this.getProductImageUrl(product);
+    // Get product image URLs
+    const imageUrls = this.getProductImageUrls(product);
     
     // Get spec sheet file
     const specSheetFile = product.files?.find(file => {
@@ -1106,12 +1121,13 @@ export class ProductComponent implements OnInit, AfterViewInit {
         <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
     `;
     
-    if (imageUrl) {
+    if (imageUrls.length) {
       htmlContent += `
-          <img src="${imageUrl}" 
-               alt="${product.name}" 
-               style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
-               onerror="this.src='assets/images/users/avatar-1.jpg'; this.onerror=null;">
+          <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px;">
+            ${imageUrls
+              .map((url: string, index: number) => `<img src="${url}" alt="${product.name || product.ref || 'Product'} image ${index + 1}" style="width: 180px; min-width: 180px; height: 140px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onerror="this.src='assets/images/users/avatar-1.jpg'; this.onerror=null;">`)
+              .join('')}
+          </div>
       `;
     } else {
       htmlContent += `
@@ -1138,7 +1154,9 @@ export class ProductComponent implements OnInit, AfterViewInit {
             <p style="margin: 8px 0;"><strong>Dimensions:</strong><br>${product.lengthMm}mm × ${product.widthMm}mm × ${product.heightMm}mm</p>
              <p style="margin: 8px 0;"><strong>Weight:</strong><br>${product.weightKg} kg</p>
              <p style="margin: 8px 0;"><strong>Price:</strong><br>${(product as any).price != null ? `${(product as any).price} EUR` : 'N/A'}</p>
-            <p style="margin: 8px 0;"><strong>Entry Date:</strong><br>${new Date(product.entryDate).toLocaleDateString()}</p>
+             <p style="margin: 8px 0;"><strong>Battery:</strong><br>${(product as any).hasBattery ? 'Yes' : 'No'}</p>
+             <p style="margin: 8px 0;"><strong>Electrical Device:</strong><br>${(product as any).isElectricalDevice ? 'Yes' : 'No'}</p>
+             <p style="margin: 8px 0;"><strong>Entry Date:</strong><br>${new Date(product.entryDate).toLocaleDateString()}</p>
           </div>
         </div>
         

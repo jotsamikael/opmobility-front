@@ -151,7 +151,7 @@
               <table class="table table-nowrap table-hover mb-0">
                 <thead>
                   <tr>
-                    <th scope="col">Product ID</th>
+                    <th scope="col">Product Reference</th>
                     <th scope="col">Type</th>
                     <th scope="col">Origin</th>
                     <th scope="col">Destination</th>
@@ -160,7 +160,7 @@
                 </thead>
                 <tbody>
                   <tr *ngFor="let movement of stats.recentMovements; let i = index" [class.table-light]="i % 2 === 0">
-                    <td>{{ movement.productId }}</td>
+                    <td>{{ movement.productRef || movement.productCode || movement.productId }}</td>
                     <td>
                       <span class="badge bg-{{ movement.type === 'OUTBOUND' ? 'warning' : 'success' }}">
                         {{ movement.type }}

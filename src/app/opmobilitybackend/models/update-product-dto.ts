@@ -25,6 +25,11 @@ export interface UpdateProductDto {
   heightMm?: number;
 
   /**
+   * Whether the product contains a battery
+   */
+  hasBattery?: boolean;
+
+  /**
    * Product image file for backward compatibility
    */
   imageFile?: Blob;
@@ -58,6 +63,11 @@ export interface UpdateProductDto {
    * price
    */
   price?: number;
+
+  /**
+   * Whether the product is an electrical device
+   */
+  isElectricalDevice?: boolean;
 
   /**
    * Ref of the product

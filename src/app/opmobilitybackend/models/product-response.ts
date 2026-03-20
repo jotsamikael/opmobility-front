@@ -12,6 +12,7 @@ export interface ProductResponse {
   description: string;
   entryDate: string;
   files: Array<ProductFileResponse>;
+  hasBattery?: boolean;
   heightMm: number;
   id: number;
   imageFile?: ProductFileResponse;
@@ -19,6 +20,7 @@ export interface ProductResponse {
   location: LocationResponse;
   name: string;
   price?: number;
+  isElectricalDevice?: boolean;
   provider: ProviderResponse;
   ref: string;
   specFile?: ProductFileResponse;

@@ -82,8 +82,8 @@
             </ng-container>
 
             <ng-container matColumnDef="id">
-              <th mat-header-cell *matHeaderCellDef>( ID)</th>
-              <td mat-cell *matCellDef="let row">{{ $any(row).id || 'N/A' }}</td>
+              <th mat-header-cell *matHeaderCellDef>Reference</th>
+              <td mat-cell *matCellDef="let row">{{ $any(row).podium?.ref || ($any(row).id ? ('#' + $any(row).id) : 'N/A') }}</td>
             </ng-container>
 
             <ng-container matColumnDef="podium">
@@ -160,8 +160,8 @@
             </ng-container>
 
             <ng-container matColumnDef="id">
-              <th mat-header-cell *matHeaderCellDef>( ID)</th>
-              <td mat-cell *matCellDef="let row">{{ $any(row).id || 'N/A' }}</td>
+              <th mat-header-cell *matHeaderCellDef>Reference</th>
+              <td mat-cell *matCellDef="let row">{{ $any(row).product?.ref || ($any(row).id ? ('#' + $any(row).id) : 'N/A') }}</td>
             </ng-container>
 
             <ng-container matColumnDef="product">
