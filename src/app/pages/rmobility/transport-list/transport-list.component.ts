@@ -670,6 +670,8 @@ export class TransportListComponent implements OnInit, AfterViewInit {
           id: (transportList as any).id
         } as any).subscribe({
           next: () => {
+            this.dataSource.data = this.dataSource.data.filter((row: any) => row.id !== (transportList as any).id);
+            this.totalItems = Math.max(0, this.totalItems - 1);
             Swal.fire('Deleted!', 'Transport list has been deleted.', 'success');
             this.loadTransportLists();
           },
