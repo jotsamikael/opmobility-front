@@ -838,13 +838,7 @@ export class ProductComponent implements OnInit, AfterViewInit {
     this.isSubmitting = false;
     this.isEditMode = false;
     this.selectedProduct = null;
-    this.commonService.resetForm(this.productForm);
-    // Ensure status is set to "Available" and disabled
-    this.productForm.patchValue({ status: 'Available' });
-    this.productForm.patchValue({ hasBattery: false, isElectricalDevice: false });
-    this.productForm.get('status')?.disable();
-    this.removeImageFile();
-    this.removeSpecSheetFile();
+    this.resetProductEditorForm();
     
     this.currentDialogRef = this.dialog.open(this.modalTemplate, {
       width: '900px',
@@ -860,6 +854,40 @@ export class ProductComponent implements OnInit, AfterViewInit {
         this.loadProducts();
       }
     });
+  }
+
+  private resetProductEditorForm(): void {
+    this.commonService.enableForm(this.productForm);
+    this.commonService.resetForm(this.productForm);
+
+    this.productForm.patchValue({
+      name: '',
+      ref: '',
+      categoryId: null,
+      locationId: null,
+      providerId: null,
+      status: 'Available',
+      lengthMm: null,
+      widthMm: null,
+      heightMm: null,
+      weightKg: null,
+      price: null,
+      hasBattery: false,
+      isElectricalDevice: false,
+      entryDate: '',
+      description: '',
+      imageFiles: null,
+      specSheetFile: null,
+    }, { emitEvent: false });
+
+    this.productForm.get('status')?.disable({ emitEvent: false });
+
+    this.categoryInputControl.setValue('', { emitEvent: false });
+    this.locationInputControl.setValue('', { emitEvent: false });
+    this.providerInputControl.setValue('', { emitEvent: false });
+
+    this.removeImageFile();
+    this.removeSpecSheetFile();
   }
 
   /**
