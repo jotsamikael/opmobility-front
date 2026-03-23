@@ -612,6 +612,9 @@ export class TransportListComponent implements OnInit, AfterViewInit {
     this.isEditMode = false;
     this.selectedTransportList = null;
     this.resetCreateWizardState();
+    this.loadProducts();
+    this.loadPodiums();
+    this.loadEvents();
     
     this.currentDialogRef = this.dialog.open(this.modalTemplate, {
       width: '980px',

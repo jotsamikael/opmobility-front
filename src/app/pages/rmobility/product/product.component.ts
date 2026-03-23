@@ -4,7 +4,7 @@ import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { debounceTime, distinctUntilChanged, startWith, map, Observable, firstValueFrom } from 'rxjs';
+import { debounceTime, distinctUntilChanged, startWith, map, Observable, firstValueFrom, finalize } from 'rxjs';
 import * as XLSX from 'xlsx';
 import { GlobalFormBuilder } from 'src/app/core/globalFormBuilder';
 import { NotificationService } from 'src/app/core/services/notification.service';
@@ -835,6 +835,7 @@ export class ProductComponent implements OnInit, AfterViewInit {
    * Open create modal
    */
   onCreateProduct(): void {
+    this.isSubmitting = false;
     this.isEditMode = false;
     this.selectedProduct = null;
     this.commonService.resetForm(this.productForm);
@@ -853,6 +854,8 @@ export class ProductComponent implements OnInit, AfterViewInit {
     });
 
     this.currentDialogRef.afterClosed().subscribe((result) => {
+      this.isSubmitting = false;
+      this.commonService.enableForm(this.productForm);
       if (result) {
         this.loadProducts();
       }
@@ -863,6 +866,7 @@ export class ProductComponent implements OnInit, AfterViewInit {
    * Open edit modal
    */
   onEditProduct(product: ProductResponse): void {
+    this.isSubmitting = false;
     this.isEditMode = true;
     this.selectedProduct = product;
     this.populateEditForm(product);
@@ -875,6 +879,8 @@ export class ProductComponent implements OnInit, AfterViewInit {
     });
 
     this.currentDialogRef.afterClosed().subscribe((result) => {
+      this.isSubmitting = false;
+      this.commonService.enableForm(this.productForm);
       if (result) {
         this.loadProducts();
       }
@@ -1013,14 +1019,17 @@ export class ProductComponent implements OnInit, AfterViewInit {
       this.productService.productControllerUpdateV1({
         id: this.selectedProduct.id,
         body: formDataToSend as any
-      }).subscribe({
+      }).pipe(
+        finalize(() => {
+          this.isSubmitting = false;
+          this.commonService.enableForm(this.productForm);
+        })
+      ).subscribe({
         next: (response) => {
           console.log("update", response);
           this.notificationService.success('Product updated successfully!');
           this.filters.page = 1;
-          this.isSubmitting = false;
-          this.commonService.enableForm(this.productForm);
-          
+
           if (this.currentDialogRef) {
             this.currentDialogRef.close(true);
           }
@@ -1028,8 +1037,6 @@ export class ProductComponent implements OnInit, AfterViewInit {
         error: (error) => {
           console.error('Error updating product:', error);
           this.notificationService.error('Failed to update product. Please try again.');
-          this.isSubmitting = false;
-          this.commonService.enableForm(this.productForm);
         }
       });
     } else {
@@ -1066,13 +1073,16 @@ export class ProductComponent implements OnInit, AfterViewInit {
       
       this.productService.productControllerCreateV1({
         body: formDataToSend as any
-      }).subscribe({
+      }).pipe(
+        finalize(() => {
+          this.isSubmitting = false;
+          this.commonService.enableForm(this.productForm);
+        })
+      ).subscribe({
         next: (response) => {
           this.notificationService.success('Product created successfully!');
           this.filters.page = 1;
-          this.isSubmitting = false;
-          this.commonService.enableForm(this.productForm);
-          
+
           if (this.currentDialogRef) {
             this.currentDialogRef.close(true);
           }
@@ -1080,8 +1090,6 @@ export class ProductComponent implements OnInit, AfterViewInit {
         error: (error) => {
           console.error('Error creating product:', error);
           this.notificationService.error('Failed to create product. Please try again.');
-          this.isSubmitting = false;
-          this.commonService.enableForm(this.productForm);
         }
       });
     }
