@@ -268,7 +268,7 @@ export class ConsumableComponent implements OnInit, AfterViewInit {
    * Load events for autocomplete
    */
   loadEvents(): void {
-    this.expoEventService.expoEventControllerGetAllExpoEventsV1$Response({ page: 1, limit: 1000 } as any).subscribe({
+    this.expoEventService.expoEventControllerGetAllExpoEventsV1$Response({ page: 1, limit: 50 } as any).subscribe({
       next: (response) => {
         const responseBody = response.body as any;
         this.eventOptions = responseBody?.items || responseBody || [];

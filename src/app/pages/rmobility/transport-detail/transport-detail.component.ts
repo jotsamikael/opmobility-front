@@ -102,7 +102,7 @@ export class TransportDetailComponent implements OnInit {
 
     this.expoEventService.expoEventControllerGetAllExpoEventsV1$Response({
       page: 1,
-      limit: 1000,
+      limit: 50,
     } as any).subscribe({
       next: (response) => {
         const responseBody = response.body as any;

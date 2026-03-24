@@ -253,7 +253,7 @@ export class OverviewComponent implements OnInit {
           return of({ items: [], meta: { totalItems: 0 } });
         })
       ),
-      events: this.expoEventService.expoEventControllerGetAllExpoEventsV1$Response({ limit: 1000 }).pipe(
+      events: this.expoEventService.expoEventControllerGetAllExpoEventsV1$Response({ limit: 50 }).pipe(
         map(response => response.body as any),
         catchError(error => {
           console.error('Error loading events:', error);
